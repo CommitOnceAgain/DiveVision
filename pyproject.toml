@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "divevision"
+version = "0.1.0"
+description = ""
+authors = ["Alexandre <alexandredothennequin@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+torch = "^2.4.1"
+numpy = "^2.1.2"
+torchvision = "^0.19.1"
+scikit-image = "^0.24.0"
+
+
+[tool.poetry.group.dev.dependencies]
+ipykernel = "^6.29.5"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
