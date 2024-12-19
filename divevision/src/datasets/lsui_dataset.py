@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Self
+import torch
 from torch.utils.data import Dataset
 from PIL import Image
 
@@ -45,9 +46,15 @@ class LSUIDataset(Dataset):
         """Return the number of samples in the dataset."""
         return len(self.data[0])
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx) -> tuple[torch.Tensor, torch.Tensor]:
         """Get a sample from the dataset."""
-        input, label = self.data[0][idx], self.data[1][idx]
+        input_filepath, label_filepath = self.data[0][idx], self.data[1][idx]
 
         # Load the images as PIL images
-        return Image.open(input), Image.open(label)
+        input_img, label_img = Image.open(input_filepath), Image.open(label_filepath)
+
+        if self.transform is not None:
+            input = self.transform(input_img)
+            label = self.transform(label_img)
+
+        return input, label
