@@ -1,6 +1,9 @@
 # Ignore the data folder
 divevision/data/*/
 
+# Ignore VS Code cache
+.vscode/*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
