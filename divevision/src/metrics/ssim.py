@@ -1,17 +1,20 @@
 import torch
 from divevision.src.metrics.abstract_metric import AbstractMetric
-from skimage.metrics import peak_signal_noise_ratio as psnr
+from skimage.metrics import structural_similarity as ssim
 
 
-class PSNRMetric(AbstractMetric):
-    """Peak signal to noise ratio metric"""
+class SSIMMetric(AbstractMetric):
+    """Structural Similarity Index Metric (SSIM) metric"""
 
-    name = "PSNR"
+    name = "SSIM"
 
     def compute(self, input: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+        """Compute the SSIM metric between two images"""
         return torch.tensor(
-            psnr(
+            ssim(
                 input.detach().cpu().numpy(),
                 target.detach().cpu().numpy(),
+                channel_axis=0,
+                data_range=1,
             )
         )
