@@ -14,6 +14,7 @@ class UShapeModelWrapper(AbstractModel):
         self,
         model_ckpt: str = "divevision/models/peng_et_al/saved_models/G/generator_795.pth",
         training: bool = False,
+        device: torch.device = torch.device("cpu"),
         # Legacy parameters
         img_dim=256,
         patch_dim=16,
@@ -52,7 +53,11 @@ class UShapeModelWrapper(AbstractModel):
         self.img_dim = img_dim
         self.model_ckpt = model_ckpt
         self.model.load_state_dict(
-            torch.load(Path(self.model_ckpt).resolve(), weights_only=True)
+            torch.load(
+                Path(self.model_ckpt).resolve(),
+                weights_only=True,
+                map_location=device,
+            )
         )
 
         if not training:
