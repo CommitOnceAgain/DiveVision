@@ -52,6 +52,9 @@ class UShapeModelWrapper(AbstractModel):
 
         self.img_dim = img_dim
         self.model_ckpt = model_ckpt
+
+        # Load the model and its weights on the given 'device'
+        self.model.to(device)
         self.model.load_state_dict(
             torch.load(
                 Path(self.model_ckpt).resolve(),
