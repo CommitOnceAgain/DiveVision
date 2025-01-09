@@ -1,13 +1,14 @@
 from typing import Type
 
 import torch
+from tqdm import tqdm
 from divevision.src.datasets.lsui_dataset import LSUIDataset
 from divevision.src.metrics.abstract_metric import AbstractMetric
 from divevision.src.metrics.psnr import PSNRMetric
 from divevision.src.metrics.ssim import SSIMMetric
 from divevision.src.models.abstract_model import AbstractModel
 from divevision.src.models.u_shape_model import UShapeModelWrapper
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
 
 
 def simple_test_routine(
@@ -16,21 +17,36 @@ def simple_test_routine(
     metric: Type[AbstractMetric],
 ) -> None:
 
-    input, label = dataset[0]
-    output = model.forward(input)
+    # Retrieve the model device
+    device = next(model.parameters()).device
 
-    input_img = model.postprocessing(input)
-    output_img = model.postprocessing(output)
-    label_img = model.postprocessing(label)
+    dataloader = DataLoader(
+        dataset,
+        batch_size=8,
+        shuffle=True,
+        num_workers=4,
+        pin_memory=True,
+    )
+    total_metric: float = 0
 
-    print(f"Input shape: {input.shape}")
-    print(f"Output shape: {output.shape}")
-    input_img.save("input.jpg")
-    output_img.save("output.jpg")
-    label_img.save("label.jpg")
+    # Iterate over the dataset
+    for input, label in tqdm(
+        dataloader,
+        desc="Iterating over the test dataset...",
+        unit="batch",
+    ):
+        # Infer an output from the model
+        with torch.no_grad():
+            # Forward pass
+            output: torch.Tensor = model.forward(input.to(device))
 
-    val_metric = metric.compute(input, label)
-    print(f"{metric.name} value = {val_metric.item()}")
+            # Compute metric between model output and label
+            val_metric: torch.Tensor = metric.compute(output, label)
+
+        # Add mean value of the metric to the total (this works with batches and singleton)
+        total_metric += val_metric.mean()
+
+    print(f"{metric.name} value = {total_metric.item()}")
 
 
 if __name__ == "__main__":
