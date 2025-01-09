@@ -13,7 +13,6 @@ class UShapeModelWrapper(AbstractModel):
     def __init__(
         self,
         model_ckpt: str = "divevision/models/peng_et_al/saved_models/G/generator_795.pth",
-        training: bool = False,
         device: torch.device = torch.device("cpu"),
         # Legacy parameters
         img_dim=256,
@@ -62,9 +61,6 @@ class UShapeModelWrapper(AbstractModel):
                 map_location=device,
             )
         )
-
-        if not training:
-            self.model.eval()
 
     def forward(self, input: torch.Tensor) -> torch.Tensor:
         # Check if the input has a batch dimension (N) and add it if not
