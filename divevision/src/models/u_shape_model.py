@@ -94,14 +94,25 @@ class UShapeModelWrapper(AbstractModel):
         return transformations(input)
 
     def postprocessing(
-        input: Image,
-        tensor: torch.Tensor,
+        self,
+        output: torch.Tensor,
     ) -> Image:
-        """Postprocess the tensor output of the model to an image"""
-        # Remove the batch dimension
-        tensor = torch.squeeze(tensor, dim=0)
-        # Clip data between [0,1]
-        tensor = tensor.clip(0.0, 1.0)
-        # Convert to PIL image
-        image = transforms.ToPILImage()(tensor)
+        """Postprocess the tensor output of the model to an image. Input can be batched."""
+
+        def process_a_single_tensor(tensor):
+            # Remove the batch dimension
+            tensor = torch.squeeze(tensor, dim=0)
+            # Clip data between [0,1]
+            tensor = tensor.clip(0.0, 1.0)
+            # Convert to PIL image
+            image = transforms.ToPILImage()(tensor)
+            return image
+
+        if output.ndim == 4:
+            image = [process_a_single_tensor(t) for t in output]
+        elif output.ndim == 3:
+            image = process_a_single_tensor(output)
+        else:
+            raise ValueError("Output tensor must be either a single or batched tensor.")
+
         return image
