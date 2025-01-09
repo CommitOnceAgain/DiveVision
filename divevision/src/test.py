@@ -1,3 +1,4 @@
+import itertools
 from typing import Type
 
 import torch
@@ -27,7 +28,7 @@ def simple_test_routine(
         num_workers=4,
         pin_memory=True,
     )
-    total_metric: float = 0
+    metric_val_list: list[float] = []
 
     # Iterate over the dataset
     for input, label in tqdm(
@@ -43,10 +44,12 @@ def simple_test_routine(
             # Compute metric between model output and label
             val_metric: torch.Tensor = metric.compute(output, label)
 
-        # Add mean value of the metric to the total (this works with batches and singleton)
-        total_metric += val_metric.mean()
+        # Store metric values
+        metric_val_list.append(val_metric.tolist())
 
-    print(f"{metric.name} value = {total_metric.item()}")
+    # If batch size > 1, 'metrics' is composed of list of lists, and need to be flattened
+    flatten_metrics = list(itertools.chain.from_iterable(metric_val_list))
+    print(f"{metric.name} value = {sum(flatten_metrics) / len(flatten_metrics)}")
 
 
 if __name__ == "__main__":
