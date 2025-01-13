@@ -4,12 +4,12 @@ from skimage.metrics import structural_similarity as ssim
 
 
 class SSIMMetric(AbstractMetric):
-    """Structural Similarity Index Metric (SSIM) metric"""
+    """Structural Similarity Index Metric (SSIM)"""
 
     name = "SSIM"
 
     def compute(self, input: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
-        """Compute the SSIM metric between two images"""
+        """Compute the Structural Similarity Index Metric (SSIM) between two images. Handles batched data."""
         # Check that both tensors have the same shape
         assert input.ndim == target.ndim
 
