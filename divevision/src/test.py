@@ -1,3 +1,4 @@
+from collections import defaultdict
 import itertools
 from typing import Type
 
@@ -15,7 +16,7 @@ from torch.utils.data import Dataset, DataLoader
 def simple_test_routine(
     model: AbstractModel,
     dataset: Dataset,
-    metric: Type[AbstractMetric],
+    metrics: list[Type[AbstractMetric]],
 ) -> None:
 
     # Retrieve the model device
@@ -28,7 +29,7 @@ def simple_test_routine(
         num_workers=4,
         pin_memory=True,
     )
-    metric_val_list: list[float] = []
+    metrics_val_list: dict[str, list[float]] = defaultdict(list)
 
     # Iterate over the dataset
     for input, label in tqdm(
@@ -41,15 +42,18 @@ def simple_test_routine(
             # Forward pass
             output: torch.Tensor = model.forward(input.to(device))
 
-            # Compute metric between model output and label
-            val_metric: torch.Tensor = metric.compute(output, label)
+            # Compute metrics between model output and label
+            for metric in metrics:
+                val_metric: torch.Tensor = metric.compute(output, label)
+                # Store metric values
+                metrics_val_list[metric.name].append(val_metric.tolist())
+            break
 
-        # Store metric values
-        metric_val_list.append(val_metric.tolist())
-
-    # If batch size > 1, 'metrics' is composed of list of lists, and need to be flattened
-    flatten_metrics = list(itertools.chain.from_iterable(metric_val_list))
-    print(f"{metric.name} value = {sum(flatten_metrics) / len(flatten_metrics)}")
+    # Report all metrics
+    for metric_name, values in metrics_val_list.items():
+        # If batch size > 1, 'metrics' is composed of list of lists, and need to be flattened
+        flatten_values = list(itertools.chain.from_iterable(values))
+        print(f"{metric_name} value = {sum(flatten_values) / len(flatten_values)}")
 
 
 if __name__ == "__main__":
@@ -57,5 +61,5 @@ if __name__ == "__main__":
 
     model = UShapeModelWrapper(device=device)
     dataset = LSUIDataset(transform=model.preprocessing)
-    metric = SSIMMetric()
-    simple_test_routine(model, dataset, metric)
+    metrics = [SSIMMetric(), PSNRMetric()]
+    simple_test_routine(model, dataset, metrics)
