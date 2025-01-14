@@ -17,6 +17,8 @@ tqdm = "^4.67.1"
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29.5"
 pytest = "^8.3.4"
+black = "^24.10.0"
+pytest-cov = "^6.0.0"
 
 [build-system]
 requires = ["poetry-core"]
