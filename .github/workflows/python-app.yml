@@ -25,23 +25,32 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: "3.12"
+        lfs: true
+    # Git LFS Pull
+    - name: Git LFS Pull
+      run: git lfs pull
+    # Install Poetry
     - name: Install Poetry
       uses: snok/install-poetry@v1
       with:
         virtualenvs-create: true
         virtualenvs-in-project: false
         installer-parallel: true
-    - uses: actions/cache@v3
-      name: Define a cache for the virtual environment based on the dependencies lock file
+    # Cache the virtual environment
+    - name: Define a cache for the virtual environment based on the dependencies lock file
+      uses: actions/cache@v3
       with:
         path: ./.venv
         key: venv-${{ hashFiles('poetry.lock') }}
+    # Install dependencies
     - name: Install the project dev dependencies
       run: |
         poetry install --with dev
+    # Lint
     - name: Lint with Black
       run: |
         poetry run black .
+    # Test
     - name: Test with pytest
       run: |
         poetry run pytest divevision/test/ --cov-config=.coveragerc --cov=divevision
