@@ -57,7 +57,7 @@ class UShapeModelWrapper(AbstractModel):
         self.model.load_state_dict(
             torch.load(
                 Path(self.model_ckpt).resolve(),
-                weights_only=True,
+                weights_only=False,
                 map_location=device,
             )
         )
