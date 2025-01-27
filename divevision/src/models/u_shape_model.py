@@ -1,14 +1,14 @@
 from pathlib import Path
-from typing import Callable
 import torch
 from torchvision.transforms import v2 as transforms
 from divevision.models.peng_et_al.Ushape_Trans import Generator as UshapeModel
-from divevision.src.datasets.lsui_dataset import LSUIDataset
 from divevision.src.models.abstract_model import AbstractModel
 from PIL import Image
 
 
 class UShapeModelWrapper(AbstractModel):
+
+    model_name = "U-Shape"
 
     def __init__(
         self,
