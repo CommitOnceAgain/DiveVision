@@ -47,7 +47,6 @@ def simple_test_routine(
                 val_metric: torch.Tensor = metric.compute(output, label)
                 # Store metric values
                 metrics_val_list[metric.name].append(val_metric.tolist())
-            break
 
     # Report all metrics
     for metric_name, values in metrics_val_list.items():
