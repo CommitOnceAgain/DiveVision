@@ -3,8 +3,7 @@ import torch
 from torch.nn import Module
 from abc import ABC, abstractmethod
 
-# Define a global registry for models
-_model_registry: dict[str, "AbstractModel"] = {}
+from . import _model_registry
 
 
 class AbstractModel(ABC, Module):
