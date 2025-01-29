@@ -17,25 +17,13 @@ def test_read_main():
 
 def test_upload_image():
     prefix = "divevision/test/resources/"
-    filenames = [
-        "lsui_sample_19.jpg",
-        "lsui_sample_1226.jpg",
-    ]
+    filename = "lsui_sample_19.jpg"
 
-    filepaths = []
-    for filename in filenames:
-        filepaths.append(Path(prefix + filename).resolve())
-
-    assert all(map(lambda p: p.exists(), filepaths))
+    filepath = Path(prefix + filename).resolve()
+    assert filepath.exists() and filepath.is_file()
 
     response = client.post(
-        "/images/",
-        files=[
-            (
-                "files",
-                open(filepath, "rb"),
-            )
-            for filepath in filepaths
-        ],
+        "/image/",
+        files={"file": (filename, filepath.read_bytes(), "image/jpeg")},
     )
     assert response.status_code == 200
