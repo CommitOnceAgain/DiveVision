@@ -21,6 +21,9 @@ class AbstractModel(ABC, Module):
         """Get a model from the registry by name."""
         return _model_registry[model_name]
 
+    def predict(self, input: Any) -> Any:
+        return self.postprocessing(self.forward(self.preprocessing(input)))
+
     @abstractmethod
     def preprocessing(self, input: Any) -> torch.Tensor:
         """Preprocess the input data."""
