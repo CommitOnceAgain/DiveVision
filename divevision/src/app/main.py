@@ -1,3 +1,4 @@
+import io
 from fastapi import FastAPI, File, Response, UploadFile
 from PIL import Image
 from fastapi.responses import HTMLResponse
@@ -32,4 +33,8 @@ async def upload_file(file: UploadFile = File(...)):
         image = Image.open(f)
         output: Image = model.predict(image)[0]  # predict() returns a list
 
-    return Response(content=output.tobytes(), media_type="image/png")
+    # Convert the image as PNG instead of raw data before returning int
+    buffer = io.BytesIO()
+    output.save(buffer, "PNG")
+
+    return Response(content=buffer.getvalue(), media_type="image/png")
