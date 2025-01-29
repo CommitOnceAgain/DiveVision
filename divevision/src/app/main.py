@@ -1,13 +1,24 @@
-from fastapi import FastAPI, Response, UploadFile
+from fastapi import FastAPI, File, Response, UploadFile
 from PIL import Image
+from fastapi.responses import HTMLResponse
 from divevision.src.models.u_shape_model import UShapeModelWrapper
 
 app = FastAPI()
 
 
-@app.get("/")
+@app.get(
+    "/",
+    response_class=HTMLResponse,
+)
 async def root():
-    return {"message": "Welcome!"}
+    return """
+<body>
+<form action="/image/" enctype="multipart/form-data" method="post">
+<input name="file" type="file">
+<input type="submit">
+</form>
+</body>
+"""
 
 
 @app.post(
@@ -15,7 +26,7 @@ async def root():
     responses={200: {"content": {"image/png": {}}}},
     response_class=Response,
 )
-async def upload_file(file: UploadFile):
+async def upload_file(file: UploadFile = File(...)):
     model = UShapeModelWrapper()
     with file.file as f:
         image = Image.open(f)
