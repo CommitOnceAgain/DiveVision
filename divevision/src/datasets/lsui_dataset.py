@@ -19,11 +19,12 @@ class LSUIDataset(Dataset):
             transform (callable, optional): Optional transform to be applied
                 on a sample.
         """
+        super().__init__()
         self.root_dir = root_dir
         self.transform = transform
-        self.data = self.init_lsui_dataset()
+        self.data = self.load_data()
 
-    def init_lsui_dataset(self) -> tuple[list[Path], list[Path]]:
+    def load_data(self) -> tuple[list[Path], list[Path]]:
         """Initialize the LSUI dataset and return the file paths to the images and the corresponding ground truth images as a list of Path objects."""
         dataset_path = Path(self.root_dir)
         labels_dir = dataset_path.joinpath("GT")
