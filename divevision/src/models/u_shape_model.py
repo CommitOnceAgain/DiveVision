@@ -67,14 +67,15 @@ class UShapeModelWrapper(AbstractModel):
                 )
             )
 
-    def predict(self, input: torch.Tensor) -> list[Image]:
+    def predict(self, input: Image) -> list[Image]:
         """We redefine the predict function, because the model accepts only 256x256 pixels images. We want to resize to the original image size."""
-        # Preprocess the input, and pass it forward in the model
-        model_output = self.forward(self.preprocessing(input))
+        # Preprocess the input
+        input_tensor = self.preprocessing(input)
+        model_output = self.forward(input_tensor)
         # Resize the model output to the original input size
         resized_tensor = transforms.Resize(
             tuple(
-                input.shape[1:]
+                input_tensor.shape[1:]
             ),  # Retrieve the size of the image by removing batch size
             interpolation=transforms.InterpolationMode.BILINEAR,
             antialias=True,
@@ -136,8 +137,3 @@ class UShapeModelWrapper(AbstractModel):
             raise ValueError("Output tensor must be either a single or batched tensor.")
 
         return image
-
-
-if __name__ == "__main__":
-    model = UShapeModelWrapper()
-    model.predict(torch.randn((3, 1024, 1024)))
