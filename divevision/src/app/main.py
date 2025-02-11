@@ -33,7 +33,7 @@ async def upload_file(file: UploadFile = File(...)):
         image = Image.open(f)
         output: Image = model.predict(image)[0]  # predict() returns a list
 
-    # Convert the image as PNG instead of raw data before returning int
+    # Convert the image as PNG instead of raw data before returning it
     buffer = io.BytesIO()
     output.save(buffer, "PNG")
 
