@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 import torch
 from torchvision.transforms import v2 as transforms
@@ -54,13 +55,17 @@ class UShapeModelWrapper(AbstractModel):
 
         # Load the model and its weights on the given 'device'
         self.model.to(device)
-        self.model.load_state_dict(
-            torch.load(
-                Path(self.model_ckpt).resolve(),
-                weights_only=False,
-                map_location=device,
+        checkpoint_path = Path(self.model_ckpt).resolve()
+        if not checkpoint_path.exists():
+            logging.warning(f"Could not find model weights at {checkpoint_path}")
+        else:
+            self.model.load_state_dict(
+                torch.load(
+                    checkpoint_path,
+                    weights_only=False,
+                    map_location=device,
+                )
             )
-        )
 
     def predict(self, input: torch.Tensor) -> list[Image]:
         """We redefine the predict function, because the model accepts only 256x256 pixels images. We want to resize to the original image size."""
