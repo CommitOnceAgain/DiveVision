@@ -1,47 +1,42 @@
 from pathlib import Path
-from typing import Self
 import torch
 from torch.utils.data import Dataset
 from PIL import Image
 import torchvision
 
 
-class LSUIDataset(Dataset):
-    """LSUI dataset."""
+class UIEBDataset(Dataset):
+    """IUEB dataset PyTorch Dataset implementation. More information are found on the project page (https://li-chongyi.github.io/proj_benchmark.html).
+
+    This dataset should only be used for academic purposes."""
 
     def __init__(
         self,
-        root_dir: str = "divevision/data/LSUI/",
+        root_dir: str = "divevision/data/UIEB/",
         transform=None,
-    ) -> Self:
-        """
-        Args:
-            root_dir (string): Directory with all the images.
-            transform (callable, optional): Optional transform to be applied
-                on a sample.
-        """
+    ):
         super().__init__()
         self.root_dir = root_dir
         self.transform = transform
         self.data = self.load_data()
 
     def load_data(self) -> tuple[list[Path], list[Path]]:
-        """Initialize the LSUI dataset and return the file paths to the images and the corresponding ground truth images as a list of Path objects."""
+        """Initialize the dataset and return a tuple containing two lists, respectively the paths to the raw images, and the paths to the target images."""
         dataset_path = Path(self.root_dir)
-        labels_dir = dataset_path.joinpath("GT")
-        inputs_dir = dataset_path.joinpath("input")
-        # Check that there are two subdirectories in root_dir called "GT" and "input"
+        inputs_path = dataset_path.joinpath("raw-890")
+        labels_path = dataset_path.joinpath("reference-890")
+        # Check that subdirectories exists
         assert (
-            labels_dir.is_dir() and inputs_dir.is_dir()
-        ), "The root directory must contain two subdirectories called 'GT' and 'input'"
+            inputs_path.is_dir() and labels_path.is_dir()
+        ), "Subdirectories 'raw-890' and 'reference-890' must exist in the dataset directory."
 
-        # Check that there are the same number of images in both directories
-        assert len(list(inputs_dir.iterdir())) == len(
-            list(labels_dir.iterdir())
+        # Check that subdirectories contain the same number of images
+        assert len(list(inputs_path.iterdir())) == len(
+            list(labels_path.iterdir())
         ), "The two subdirectories must contain the same number of images"
 
-        inputs_filepaths = sorted([str(x) for x in inputs_dir.glob("*.jpg")])
-        labels_filepaths = sorted([str(x) for x in labels_dir.glob("*.jpg")])
+        inputs_filepaths = sorted([str(x) for x in inputs_path.glob("*.png")])
+        labels_filepaths = sorted([str(x) for x in labels_path.glob("*.png")])
 
         return inputs_filepaths, labels_filepaths
 
@@ -49,13 +44,12 @@ class LSUIDataset(Dataset):
         """Return the number of samples in the dataset."""
         return len(self.data[0])
 
-    def __getitem__(self, idx) -> tuple[torch.Tensor, torch.Tensor]:
+    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
         """Get a sample from the dataset."""
         input_filepath, label_filepath = self.data[0][idx], self.data[1][idx]
-
         # Load the images as PIL images
         input_img, label_img = Image.open(input_filepath), Image.open(label_filepath)
-
+        # Apply the transforms to both images
         if self.transform is not None:
             input = self.transform(input_img)
             label = self.transform(label_img)
