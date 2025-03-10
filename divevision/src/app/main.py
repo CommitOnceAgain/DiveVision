@@ -31,7 +31,7 @@ async def upload_file(file: UploadFile = File(...)):
     model = UShapeModelWrapper()
     with file.file as f:
         image = Image.open(f)
-        output: Image = model.predict(image)[0]  # predict() returns a list
+        output: Image.Image = model.predict(image)[0]  # predict() returns a list
 
     # Convert the image as PNG instead of raw data before returning it
     buffer = io.BytesIO()
