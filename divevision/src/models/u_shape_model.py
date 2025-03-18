@@ -53,19 +53,7 @@ class UShapeModelWrapper(AbstractModel):
         self.img_dim = img_dim
         self.model_ckpt = model_ckpt
 
-        # Load the model and its weights on the given 'device'
-        self.model.to(device)
-        checkpoint_path = Path(self.model_ckpt).resolve()
-        if not checkpoint_path.exists():
-            logging.warning(f"Could not find model weights at {checkpoint_path}")
-        else:
-            self.model.load_state_dict(
-                torch.load(
-                    checkpoint_path,
-                    weights_only=False,
-                    map_location=device,
-                )
-            )
+        self.load_model(device)
 
     def predict(self, input: Image) -> list[Image]:
         """We redefine the predict function, because the model accepts only 256x256 pixels images. We want to resize to the original image size."""

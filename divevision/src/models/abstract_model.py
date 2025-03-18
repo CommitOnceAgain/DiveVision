@@ -1,3 +1,5 @@
+import logging
+from pathlib import Path
 from typing import Any
 import torch
 from torch.nn import Module
@@ -33,3 +35,17 @@ class AbstractModel(ABC, Module):
     def postprocessing(self, output: torch.Tensor) -> Any:
         """Postprocess the output data."""
         raise NotImplementedError
+
+    def load_model(self, device: torch.device) -> None:
+        self.model.to(device)
+        checkpoint_path = Path(self.model_ckpt).resolve()
+        if not checkpoint_path.exists():
+            logging.warning(f"Could not find model weights at: {checkpoint_path}")
+        else:
+            self.model.load_state_dict(
+                torch.load(
+                    checkpoint_path,
+                    weights_only=False,
+                    map_location=device,
+                )
+            )
