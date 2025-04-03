@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import Final
 
-from . import _metric_registry
-
 import torch
+
+from . import _metric_registry
 
 
 class AbstractMetric(ABC):

@@ -1,5 +1,7 @@
 import functools
+
 import torch.nn as nn
+
 from ..util import ActNorm
 
 

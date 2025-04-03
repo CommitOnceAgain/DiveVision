@@ -1,10 +1,11 @@
 """
    Computes the Underwater Image Quality Measure (UIQM)
 """
-from scipy import ndimage
-from PIL import Image
-import numpy as np
 import math
+
+import numpy as np
+from PIL import Image
+from scipy import ndimage
 
 
 def mu_a(x, alpha_L=0.1, alpha_R=0.1):

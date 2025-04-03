@@ -1,7 +1,9 @@
 from contextlib import nullcontext as does_not_raise
+
 import numpy as np
 import pytest
 from PIL import Image
+
 from divevision.src.models.cvae_model import CVAEModelWrapper
 from divevision.src.models.u_shape_model import UShapeModelWrapper
 

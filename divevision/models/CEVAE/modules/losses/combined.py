@@ -1,15 +1,16 @@
+import logging
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torchmetrics.functional.image import image_gradients
-from .lpips import LPIPS
-from divevision.models.CEVAE.modules.discriminator.patchgan import (
-    PatchGANDiscriminator,
-    weights_init,
-)
 from pytorch_msssim import ms_ssim
-import logging
+from torchmetrics.functional.image import image_gradients
+
+from divevision.models.CEVAE.modules.discriminator.patchgan import (
+    PatchGANDiscriminator, weights_init)
 from divevision.models.CEVAE.util import rank_zero_log_only
+
+from .lpips import LPIPS
 
 logger = logging.getLogger(__name__)
 

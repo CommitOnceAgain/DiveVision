@@ -5,6 +5,7 @@
 # Design based on the Vit
 
 import torch.nn as nn
+
 from .IntmdSequential import IntermediateSequential
 
 

@@ -1,9 +1,11 @@
 from typing import Tuple
+
+import numpy as np
 import torch
 import torch.nn as nn
-import numpy as np
-from .common import squash
 import torch.nn.functional as F
+
+from .common import squash
 
 
 class DigitCaps(nn.Module):

@@ -1,6 +1,7 @@
-from typing import Union, List
-from torch.utils.data import Dataset
+from typing import List, Union
+
 from src.data.base import ImagePairDatasetFromPaths
+from torch.utils.data import Dataset
 
 
 class BaseDataset(Dataset):

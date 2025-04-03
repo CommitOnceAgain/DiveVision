@@ -1,6 +1,7 @@
 import torch
-from divevision.src.metrics.abstract_metric import AbstractMetric
 from skimage.metrics import peak_signal_noise_ratio as psnr
+
+from divevision.src.metrics.abstract_metric import AbstractMetric
 
 
 class PSNRMetric(AbstractMetric):

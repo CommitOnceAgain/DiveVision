@@ -1,7 +1,9 @@
 import io
+
 from fastapi import FastAPI, File, Response, UploadFile
-from PIL import Image
 from fastapi.responses import HTMLResponse
+from PIL import Image
+
 from divevision.src.models.u_shape_model import UShapeModelWrapper
 
 app = FastAPI()

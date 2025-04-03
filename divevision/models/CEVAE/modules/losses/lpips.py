@@ -1,12 +1,14 @@
 """Stripped version of https://github.com/richzhang/PerceptualSimilarity/tree/master/models"""
 
+import logging
+from collections import namedtuple
+
 import torch
 import torch.nn as nn
 from torchvision import models
-from collections import namedtuple
 from torchvision.models import VGG16_Weights
+
 from divevision.models.CEVAE.util import get_ckpt_path, rank_zero_log_only
-import logging
 
 logger = logging.getLogger(__name__)
 

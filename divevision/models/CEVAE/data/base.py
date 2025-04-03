@@ -1,10 +1,11 @@
-from typing import Tuple, Any, Dict, List
+from typing import Any, Dict, List, Tuple
+
+import albumentations
 import cv2
 import numpy as np
-import albumentations
-from PIL import Image
+from PIL import Image, ImageFile
 from torch.utils.data import Dataset
-from PIL import ImageFile
+
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 

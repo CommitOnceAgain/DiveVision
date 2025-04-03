@@ -1,12 +1,17 @@
-from collections import defaultdict
 import itertools
+import os
+import time
+from collections import defaultdict
 from pathlib import Path
 from typing import Callable, Type
-import time
 
+import mlflow
 import numpy as np
 import torch
+from dotenv import load_dotenv
+from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
+
 from divevision.src.datasets.lsui_dataset import LSUIDataset
 from divevision.src.datasets.uieb_dataset import UIEBDataset
 from divevision.src.metrics.abstract_metric import AbstractMetric
@@ -15,10 +20,6 @@ from divevision.src.metrics.ssim import SSIMMetric
 from divevision.src.models.abstract_model import AbstractModel
 from divevision.src.models.cvae_model import CVAEModelWrapper
 from divevision.src.models.u_shape_model import UShapeModelWrapper
-from torch.utils.data import Dataset, DataLoader
-import mlflow
-from dotenv import load_dotenv
-import os
 
 
 def extract_last_metrics(

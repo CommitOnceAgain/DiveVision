@@ -1,15 +1,14 @@
-import torch.nn as nn
-import torch.nn.functional as F
-import torch as th
+import copy
 import datetime
 import os
 import time
 import timeit
-import copy
+
 import numpy as np
-from torch.nn import ModuleList
-from torch.nn import Conv2d
-from torch.nn import LeakyReLU
+import torch as th
+import torch.nn as nn
+import torch.nn.functional as F
+from torch.nn import Conv2d, LeakyReLU, ModuleList
 
 
 # PixelwiseNorm代替了BatchNorm
@@ -85,8 +84,8 @@ class _equalized_conv2d(th.nn.Module):
 
     def __init__(self, c_in, c_out, k_size, stride=1, pad=0, bias=True):
         """constructor for the class"""
+        from numpy import prod, sqrt
         from torch.nn.modules.utils import _pair
-        from numpy import sqrt, prod
 
         super().__init__()
 
@@ -138,8 +137,8 @@ class _equalized_deconv2d(th.nn.Module):
 
     def __init__(self, c_in, c_out, k_size, stride=1, pad=0, bias=True):
         """constructor for the class"""
-        from torch.nn.modules.utils import _pair
         from numpy import sqrt
+        from torch.nn.modules.utils import _pair
 
         super().__init__()
 
@@ -274,8 +273,7 @@ class DisFinalBlock(th.nn.Module):
         :param in_channels: number of input channels
         :param use_eql: whether to use equalized learning rate
         """
-        from torch.nn import LeakyReLU
-        from torch.nn import Conv2d
+        from torch.nn import Conv2d, LeakyReLU
 
         super().__init__()
 
@@ -337,8 +335,7 @@ class DisGeneralConvBlock(th.nn.Module):
         :param out_channels: number of output channels
         :param use_eql: whether to use equalized learning rate
         """
-        from torch.nn import AvgPool2d, LeakyReLU
-        from torch.nn import Conv2d
+        from torch.nn import AvgPool2d, Conv2d, LeakyReLU
 
         super().__init__()
 

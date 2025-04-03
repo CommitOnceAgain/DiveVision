@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 
+
 def uciqe(a:np.ndarray) -> float:
     img_lab = cv2.cvtColor(a, cv2.COLOR_RGB2LAB)  # Transform to Lab color space
 

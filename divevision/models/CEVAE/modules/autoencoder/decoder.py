@@ -1,17 +1,14 @@
-from typing import Tuple, List
-
-from torch import nn
-import numpy as np
 import logging
+from typing import List, Tuple
 
+import numpy as np
 import torch
+from torch import nn
 
-from divevision.models.CEVAE.modules.autoencoder.common import (
-    AttnBlock,
-    Normalize,
-    ResnetBlock,
-    nonlinearity,
-)
+from divevision.models.CEVAE.modules.autoencoder.common import (AttnBlock,
+                                                                Normalize,
+                                                                ResnetBlock,
+                                                                nonlinearity)
 from divevision.models.CEVAE.util import rank_zero_log_only
 
 logger = logging.getLogger(__name__)

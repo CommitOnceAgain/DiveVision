@@ -1,9 +1,11 @@
-from typing import Dict
 import math
+from typing import Dict
+
 import numpy as np
+import torch
 from skimage.metrics import structural_similarity
 from skimage.transform import resize
-import torch
+
 from .niqe import calculate_niqe as niqe
 from .uciqe import uciqe
 from .uiqm import uiqm

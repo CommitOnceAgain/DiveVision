@@ -1,9 +1,10 @@
 from pathlib import Path
 from typing import Self
+
 import torch
-from torch.utils.data import Dataset
-from PIL import Image
 import torchvision
+from PIL import Image
+from torch.utils.data import Dataset
 
 
 class LSUIDataset(Dataset):

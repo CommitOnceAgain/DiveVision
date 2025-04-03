@@ -1,9 +1,10 @@
 import logging
+from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any
+
 import torch
 from torch.nn import Module
-from abc import ABC, abstractmethod
 
 from . import _model_registry
 

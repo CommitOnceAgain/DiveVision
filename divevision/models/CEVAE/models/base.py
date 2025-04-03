@@ -1,9 +1,11 @@
+import logging
+
+import numpy as np
 import torch
 from lightning import pytorch as pl
-import numpy as np
+
 from ..build.from_config import instantiate_from_config
 from ..metrics import compute as compute_metrics
-import logging
 from ..util import rank_zero_log_only
 
 logger = logging.getLogger(__name__)

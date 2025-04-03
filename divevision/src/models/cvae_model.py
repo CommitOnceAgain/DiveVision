@@ -1,14 +1,15 @@
 import logging
 from pathlib import Path
 
-import PIL
 import numpy as np
+import PIL
+import torch
 from omegaconf import OmegaConf
+from PIL import Image
+from torchvision.transforms.functional import resize, to_tensor
+
 from divevision.models.CEVAE.build.from_config import instantiate_from_config
 from divevision.src.models.abstract_model import AbstractModel
-import torch
-from torchvision.transforms.functional import resize, to_tensor
-from PIL import Image
 
 
 class CVAEModelWrapper(AbstractModel):

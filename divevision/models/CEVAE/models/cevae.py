@@ -1,8 +1,9 @@
 import torch
 import torch.nn as nn
+
 from ..models.base import BaseModel
-from ..modules.autoencoder import Encoder, Decoder
-from ..modules.capsules import PrimaryCaps, DigitCaps
+from ..modules.autoencoder import Decoder, Encoder
+from ..modules.capsules import DigitCaps, PrimaryCaps
 
 
 class CEVAE(BaseModel):
