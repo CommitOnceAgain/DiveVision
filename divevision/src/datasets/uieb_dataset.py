@@ -10,6 +10,8 @@ class UIEBDataset(Dataset):
 
     This dataset should only be used for academic purposes."""
 
+    dataset_name = "UIEB"
+
     def __init__(
         self,
         root_dir: str = "divevision/data/UIEB/",

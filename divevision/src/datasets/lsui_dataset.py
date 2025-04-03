@@ -9,6 +9,8 @@ import torchvision
 class LSUIDataset(Dataset):
     """LSUI dataset."""
 
+    dataset_name = "LSUI"
+
     def __init__(
         self,
         root_dir: str = "divevision/data/LSUI/",
