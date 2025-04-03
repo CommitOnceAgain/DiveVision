@@ -1,5 +1,3 @@
-import logging
-from pathlib import Path
 import torch
 from torchvision.transforms import v2 as transforms
 from divevision.models.UShapeTransformer.Ushape_Trans import Generator as UshapeModel
@@ -83,7 +81,7 @@ class UShapeModelWrapper(AbstractModel):
         # Output is actually a tuple of four tensors, we want to retrieve the last one
         return output[-1]
 
-    def preprocessing(self, input: Image) -> torch.Tensor:
+    def preprocessing(self, input: Image | list[Image]) -> torch.Tensor:
         transformations = transforms.Compose(
             [
                 # Convert the image to a tensor
@@ -100,12 +98,15 @@ class UShapeModelWrapper(AbstractModel):
                 transforms.ToDtype(torch.float32, scale=True),
             ]
         )
+        if isinstance(input, list):  # Handle batch preprocessing
+            output = [transformations(item) for item in input]
+            return torch.stack(output, dim=0)
         return transformations(input)
 
     def postprocessing(
         self,
         output: torch.Tensor,
-    ) -> Image:
+    ) -> list[Image]:
         """Postprocess the tensor output of the model to an image. Input can be batched."""
 
         def process_a_single_tensor(tensor):
@@ -118,10 +119,8 @@ class UShapeModelWrapper(AbstractModel):
             return image
 
         if output.ndim == 4:
-            image = [process_a_single_tensor(t) for t in output]
+            return [process_a_single_tensor(t) for t in output]
         elif output.ndim == 3:
-            image = process_a_single_tensor(output)
+            return [process_a_single_tensor(output)]
         else:
             raise ValueError("Output tensor must be either a single or batched tensor.")
-
-        return image
