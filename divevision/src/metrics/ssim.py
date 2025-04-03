@@ -1,6 +1,7 @@
 import torch
-from divevision.src.metrics.abstract_metric import AbstractMetric
 from skimage.metrics import structural_similarity as ssim
+
+from divevision.src.metrics.abstract_metric import AbstractMetric
 
 
 class SSIMMetric(AbstractMetric):

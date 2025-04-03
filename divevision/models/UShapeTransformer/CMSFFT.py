@@ -3,18 +3,17 @@
 # @File    : CMSFFT.py
 # coding=utf-8
 # Design based on the CTrans
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
+
 import copy
 import logging
 import math
+
+import numpy as np
 import torch
 import torch.nn as nn
-import numpy as np
-from torch.nn import Dropout, Softmax, Conv2d, LayerNorm
+from torch.nn import Conv2d, Dropout, LayerNorm, Softmax
 from torch.nn.modules.utils import _pair
-
 
 # KV_size = 480
 # transformer.num_heads  = 4

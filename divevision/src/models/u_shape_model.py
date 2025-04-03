@@ -1,19 +1,18 @@
-import logging
-from pathlib import Path
 import torch
+from PIL.Image import Image
 from torchvision.transforms import v2 as transforms
-from divevision.models.peng_et_al.Ushape_Trans import Generator as UshapeModel
+
+from divevision.models.UShapeTransformer.Ushape_Trans import Generator as UshapeModel
 from divevision.src.models.abstract_model import AbstractModel
-from PIL import Image
 
 
 class UShapeModelWrapper(AbstractModel):
 
-    model_name = "U-Shape"
+    name = "U-Shape"
 
     def __init__(
         self,
-        model_ckpt: str = "divevision/models/peng_et_al/saved_models/G/generator_795.pth",
+        model_ckpt: str = "divevision/models/UShapeTransformer/saved_models/G/generator_795.pth",
         device: torch.device = torch.device("cpu"),
         # Legacy parameters
         img_dim=256,
@@ -53,19 +52,7 @@ class UShapeModelWrapper(AbstractModel):
         self.img_dim = img_dim
         self.model_ckpt = model_ckpt
 
-        # Load the model and its weights on the given 'device'
-        self.model.to(device)
-        checkpoint_path = Path(self.model_ckpt).resolve()
-        if not checkpoint_path.exists():
-            logging.warning(f"Could not find model weights at {checkpoint_path}")
-        else:
-            self.model.load_state_dict(
-                torch.load(
-                    checkpoint_path,
-                    weights_only=False,
-                    map_location=device,
-                )
-            )
+        self.load_model(device)
 
     def predict(self, input: Image) -> list[Image]:
         """We redefine the predict function, because the model accepts only 256x256 pixels images. We want to resize to the original image size."""
@@ -95,7 +82,7 @@ class UShapeModelWrapper(AbstractModel):
         # Output is actually a tuple of four tensors, we want to retrieve the last one
         return output[-1]
 
-    def preprocessing(self, input: Image) -> torch.Tensor:
+    def preprocessing(self, input: Image | list[Image]) -> torch.Tensor:
         transformations = transforms.Compose(
             [
                 # Convert the image to a tensor
@@ -112,12 +99,15 @@ class UShapeModelWrapper(AbstractModel):
                 transforms.ToDtype(torch.float32, scale=True),
             ]
         )
+        if isinstance(input, list):  # Handle batch preprocessing
+            output = [transformations(item) for item in input]
+            return torch.stack(output, dim=0)
         return transformations(input)
 
     def postprocessing(
         self,
         output: torch.Tensor,
-    ) -> Image:
+    ) -> list[Image]:
         """Postprocess the tensor output of the model to an image. Input can be batched."""
 
         def process_a_single_tensor(tensor):
@@ -130,10 +120,8 @@ class UShapeModelWrapper(AbstractModel):
             return image
 
         if output.ndim == 4:
-            image = [process_a_single_tensor(t) for t in output]
+            return [process_a_single_tensor(t) for t in output]
         elif output.ndim == 3:
-            image = process_a_single_tensor(output)
+            return [process_a_single_tensor(output)]
         else:
             raise ValueError("Output tensor must be either a single or batched tensor.")
-
-        return image
