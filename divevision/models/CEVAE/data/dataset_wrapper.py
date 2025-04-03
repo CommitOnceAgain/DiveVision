@@ -3,7 +3,7 @@ from typing import Any
 
 from lightning import pytorch as pl
 from omegaconf import OmegaConf
-from build.from_config import instantiate_from_config
+from building.from_config import instantiate_from_config
 from util import rank_zero_log_only
 from torch.utils.data import DataLoader, Dataset
 

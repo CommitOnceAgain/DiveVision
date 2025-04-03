@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from lightning import pytorch as pl
 
-from ..build.from_config import instantiate_from_config
+from ..building.from_config import instantiate_from_config
 from ..metrics import compute as compute_metrics
 from ..util import rank_zero_log_only
 

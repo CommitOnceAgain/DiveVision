@@ -8,7 +8,7 @@ from omegaconf import OmegaConf
 from PIL import Image
 from torchvision.transforms.functional import resize, to_tensor
 
-from divevision.models.CEVAE.build.from_config import instantiate_from_config
+from divevision.models.CEVAE.building.from_config import instantiate_from_config
 from divevision.src.models.abstract_model import AbstractModel
 
 
