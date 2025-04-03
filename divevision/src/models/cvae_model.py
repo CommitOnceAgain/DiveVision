@@ -50,28 +50,6 @@ class CVAEModelWrapper(AbstractModel):
             )
             self.model.load_state_dict(checkpoint["state_dict"], strict=False)
 
-    def preprocessing(self, input: Image.Image) -> torch.Tensor:
-        # Preprocessing function is gathered from original ce-vae github implementation
-        img = resize(
-            input,
-            (256, 256),
-            interpolation=Image.Resampling.LANCZOS,
-        )
-        img = to_tensor(img)
-        if img.size()[1] < 3:
-            img = torch.cat([img, img, img], dim=1)
-        return 2.0 * img - 1.0  # Resample values from [0, 1] to [-1, 1]
-
-    def postprocessing(self, output: torch.Tensor) -> Image.Image:
-        output = output.clamp(-1, 1)
-        output = (output + 1.0) / 2.0
-        output = output.permute(1, 2, 0).numpy()
-        output = (255 * output).astype(np.uint8)
-        output = Image.fromarray(output)
-        if not output.mode == "RGB":
-            output = output.convert("RGB")
-        return output
-
     def forward(self, input: torch.Tensor) -> torch.Tensor:
         # Check if the input has a batch dimension (N) and add it if not
         if input.ndim == 3:
@@ -81,3 +59,40 @@ class CVAEModelWrapper(AbstractModel):
 
         # Get the model output
         return self.model.forward(input)
+
+    def preprocessing(self, input: Image.Image | list[Image.Image]) -> torch.Tensor:
+        def preprocessing_single_image(img: Image.Image) -> torch.Tensor:
+            # Preprocessing function is gathered from original ce-vae github implementation
+            img = resize(
+                img,
+                (256, 256),
+                interpolation=Image.Resampling.LANCZOS,
+            )
+            img = to_tensor(img)
+            if img.size()[1] < 3:
+                img = torch.cat([img, img, img], dim=1)
+            return 2.0 * img - 1.0  # Resample values from [0, 1] to [-1, 1]
+
+        if isinstance(input, list):
+            output = [preprocessing_single_image(item) for item in input]
+            return torch.stack(output, dim=0)
+        return preprocessing_single_image(input)
+
+    def postprocessing(self, output: torch.Tensor) -> list[Image.Image]:
+        def postprocessing_single_image(tensor: torch.Tensor) -> Image.Image:
+            tensor = tensor.detach()
+            tensor = tensor.clamp(-1, 1)
+            tensor = (tensor + 1.0) / 2.0
+            tensor = tensor.permute(1, 2, 0).numpy()
+            tensor = (255 * tensor).astype(np.uint8)
+            tensor = Image.fromarray(tensor)
+            if not tensor.mode == "RGB":
+                tensor = tensor.convert("RGB")
+            return tensor
+
+        if output.ndim == 4:
+            return [postprocessing_single_image(t) for t in output]
+        elif output.ndim == 3:
+            return [postprocessing_single_image(output)]
+        else:
+            raise ValueError("Output tensor must be either a single or batched tensor.")
