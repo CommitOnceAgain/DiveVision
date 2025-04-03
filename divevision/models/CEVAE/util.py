@@ -32,7 +32,7 @@ def download(url, local_path, chunk_size=1024):
 def md5_hash(path):
     with open(path, "rb") as f:
         content = f.read()
-    return hashlib.md5(content).hexdigest()
+    return hashlib.md5(content, usedforsecurity=False).hexdigest()
 
 
 def get_ckpt_path(name, root, check=False):
