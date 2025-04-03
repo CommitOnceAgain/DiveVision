@@ -41,15 +41,18 @@ class BaseModel(pl.LightningModule):
         self.save_hyperparameters()
 
     def init_from_ckpt(self, path, ignore_keys=list()):
-        sd = torch.load(path, map_location="cpu", weights_only=False)["state_dict"]
-        keys = list(sd.keys())
-        for k in keys:
-            for ik in ignore_keys:
-                if k.startswith(ik):
-                    print("Deleting key {} from state_dict.".format(k))
-                    del sd[k]
-        self.load_state_dict(sd, strict=False)
-        rank_zero_log_only(logger, f"Restored from {path}")
+        try:
+            sd = torch.load(path, map_location="cpu", weights_only=False)["state_dict"]
+            keys = list(sd.keys())
+            for k in keys:
+                for ik in ignore_keys:
+                    if k.startswith(ik):
+                        print("Deleting key {} from state_dict.".format(k))
+                        del sd[k]
+            self.load_state_dict(sd, strict=False)
+            rank_zero_log_only(logger, f"Restored from {path}")
+        except:
+            rank_zero_log_only(logger, f"Could not restore from {path}")
 
     def get_input(self, batch, k):
         x = batch[k]
