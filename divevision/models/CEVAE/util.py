@@ -142,19 +142,3 @@ def retrieve(
         return list_or_dict
     else:
         return list_or_dict, success
-
-
-if __name__ == "__main__":
-    config = {
-        "keya": "a",
-        "keyb": "b",
-        "keyc": {
-            "cc1": 1,
-            "cc2": 2,
-        },
-    }
-    from omegaconf import OmegaConf
-
-    config = OmegaConf.create(config)
-    print(config)
-    retrieve(config, "keya")
