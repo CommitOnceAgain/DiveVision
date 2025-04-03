@@ -2,14 +2,13 @@ import torch
 from PIL.Image import Image
 from torchvision.transforms import v2 as transforms
 
-from divevision.models.UShapeTransformer.Ushape_Trans import \
-    Generator as UshapeModel
+from divevision.models.UShapeTransformer.Ushape_Trans import Generator as UshapeModel
 from divevision.src.models.abstract_model import AbstractModel
 
 
 class UShapeModelWrapper(AbstractModel):
 
-    model_name = "U-Shape"
+    name = "U-Shape"
 
     def __init__(
         self,

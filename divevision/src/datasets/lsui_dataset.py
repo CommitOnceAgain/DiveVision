@@ -6,17 +6,19 @@ import torchvision
 from PIL import Image
 from torch.utils.data import Dataset
 
+from divevision.src.datasets.abstract_dataset import AbstractDataset
 
-class LSUIDataset(Dataset):
+
+class LSUIDataset(Dataset, AbstractDataset):
     """LSUI dataset."""
 
-    dataset_name = "LSUI"
+    name = "LSUI"
 
     def __init__(
         self,
         root_dir: str = "divevision/data/LSUI/",
         transform=None,
-    ) -> Self:
+    ):
         """
         Args:
             root_dir (string): Directory with all the images.
@@ -28,7 +30,7 @@ class LSUIDataset(Dataset):
         self.transform = transform
         self.data = self.load_data()
 
-    def load_data(self) -> tuple[list[Path], list[Path]]:
+    def load_data(self) -> tuple[list[str], list[str]]:
         """Initialize the LSUI dataset and return the file paths to the images and the corresponding ground truth images as a list of Path objects."""
         dataset_path = Path(self.root_dir)
         labels_dir = dataset_path.joinpath("GT")

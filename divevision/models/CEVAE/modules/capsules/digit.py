@@ -13,7 +13,7 @@ class DigitCaps(nn.Module):
         self,
         channels: int,
         logits_num: int = 64,
-        num_routes: Tuple[int] = (32, 9, 9),
+        num_routes: tuple[int, ...] = (32, 9, 9),
         num_capsules: int = 16,
     ):
         super(DigitCaps, self).__init__()

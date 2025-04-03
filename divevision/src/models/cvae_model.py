@@ -14,7 +14,7 @@ from divevision.src.models.abstract_model import AbstractModel
 
 class CVAEModelWrapper(AbstractModel):
 
-    model_name = "CVAE"
+    name = "CVAE"
 
     def __init__(
         self,
@@ -69,10 +69,10 @@ class CVAEModelWrapper(AbstractModel):
                 (256, 256),
                 interpolation=Image.Resampling.LANCZOS,
             )
-            img = to_tensor(img)
-            if img.size()[1] < 3:
-                img = torch.cat([img, img, img], dim=1)
-            return 2.0 * img - 1.0  # Resample values from [0, 1] to [-1, 1]
+            tensor = to_tensor(img)
+            if tensor.size()[1] < 3:
+                tensor = torch.cat([tensor, tensor, tensor], dim=1)
+            return 2.0 * tensor - 1.0  # Resample values from [0, 1] to [-1, 1]
 
         if isinstance(input, list):
             output = [preprocessing_single_image(item) for item in input]
@@ -84,12 +84,12 @@ class CVAEModelWrapper(AbstractModel):
             tensor = tensor.detach()
             tensor = tensor.clamp(-1, 1)
             tensor = (tensor + 1.0) / 2.0
-            tensor = tensor.permute(1, 2, 0).numpy()
-            tensor = (255 * tensor).astype(np.uint8)
-            tensor = Image.fromarray(tensor)
-            if not tensor.mode == "RGB":
-                tensor = tensor.convert("RGB")
-            return tensor
+            array = tensor.permute(1, 2, 0).numpy()
+            array = (255 * array).astype(np.uint8)
+            img = Image.fromarray(array)
+            if not img.mode == "RGB":
+                img = img.convert("RGB")
+            return img
 
         if output.ndim == 4:
             return [postprocessing_single_image(t) for t in output]

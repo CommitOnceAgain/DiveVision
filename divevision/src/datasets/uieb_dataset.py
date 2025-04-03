@@ -5,13 +5,15 @@ import torchvision
 from PIL import Image
 from torch.utils.data import Dataset
 
+from divevision.src.datasets.abstract_dataset import AbstractDataset
 
-class UIEBDataset(Dataset):
+
+class UIEBDataset(Dataset, AbstractDataset):
     """IUEB dataset PyTorch Dataset implementation. More information are found on the project page (https://li-chongyi.github.io/proj_benchmark.html).
 
     This dataset should only be used for academic purposes."""
 
-    dataset_name = "UIEB"
+    name = "UIEB"
 
     def __init__(
         self,
@@ -23,7 +25,7 @@ class UIEBDataset(Dataset):
         self.transform = transform
         self.data = self.load_data()
 
-    def load_data(self) -> tuple[list[Path], list[Path]]:
+    def load_data(self) -> tuple[list[str], list[str]]:
         """Initialize the dataset and return a tuple containing two lists, respectively the paths to the raw images, and the paths to the target images."""
         dataset_path = Path(self.root_dir)
         inputs_path = dataset_path.joinpath("raw-890")

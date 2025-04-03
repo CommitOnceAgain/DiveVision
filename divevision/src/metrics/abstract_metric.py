@@ -9,7 +9,7 @@ from . import _metric_registry
 class AbstractMetric(ABC):
     """Abstract class for metrics"""
 
-    name: Final[str]
+    name: str
 
     def __init_subclass__(cls):
         # Register subclasses in the global registry when they are defined

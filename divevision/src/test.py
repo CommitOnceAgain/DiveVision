@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
 
+from divevision.src.datasets.abstract_dataset import AbstractDataset
 from divevision.src.datasets.lsui_dataset import LSUIDataset
 from divevision.src.datasets.uieb_dataset import UIEBDataset
 from divevision.src.metrics.abstract_metric import AbstractMetric
@@ -44,8 +45,8 @@ def extract_last_metrics(
 
 def full_test_routine(
     models: list[AbstractModel],
-    dataset_classes: list[type[Dataset]],
-    metrics: list[Type[AbstractMetric]],
+    dataset_classes: list[type[AbstractDataset]],
+    metrics: list[AbstractMetric],
 ) -> None:
 
     # Save MLFlow experiment
@@ -116,8 +117,8 @@ def full_test_routine(
             # Log information about the model and dataset used for testing as parameters
             mlflow.log_params(
                 {
-                    "model_name": model.model_name,
-                    "dataset_name": data.dataset_name,
+                    "model_name": model.name,
+                    "dataset_name": data.name,
                 }
             )
 

@@ -5,10 +5,12 @@ import numpy as np
 import torch
 from torch import nn
 
-from divevision.models.CEVAE.modules.autoencoder.common import (AttnBlock,
-                                                                Normalize,
-                                                                ResnetBlock,
-                                                                nonlinearity)
+from divevision.models.CEVAE.modules.autoencoder.common import (
+    AttnBlock,
+    Normalize,
+    ResnetBlock,
+    nonlinearity,
+)
 from divevision.models.CEVAE.util import rank_zero_log_only
 
 logger = logging.getLogger(__name__)
@@ -64,9 +66,9 @@ class Decoder(nn.Module):
         *,
         ch: int,
         out_ch: int,
-        ch_mult: Tuple[int] = (1, 2, 4, 8),
+        ch_mult: tuple[int, ...] = (1, 2, 4, 8),
         num_res_blocks: int,
-        attn_resolutions: List[int],
+        attn_resolutions: list[int],
         dropout: float = 0.0,
         resamp_with_conv: bool = True,
         in_channels: int,

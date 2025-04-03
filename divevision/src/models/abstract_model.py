@@ -12,12 +12,12 @@ from . import _model_registry
 class AbstractModel(ABC, Module):
     """Abstract class for all models."""
 
-    model_name: str
+    name: str
 
     def __init_subclass__(cls):
         # Register subclasses in the global registry when they are defined
         if cls not in _model_registry:
-            _model_registry[cls.model_name] = cls()
+            _model_registry[cls.name] = cls()
 
     @classmethod
     def get_model(cls, model_name: str) -> "AbstractModel":

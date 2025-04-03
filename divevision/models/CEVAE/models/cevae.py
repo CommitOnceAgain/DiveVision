@@ -10,13 +10,13 @@ class CEVAE(BaseModel):
     def __init__(
         self,
         ddconfig: dict,
-        lossconfig: dict = None,
+        lossconfig: dict | None = None,
         embed_dim: int = 256,
-        optimizer: dict = None,
-        ckpt_path: str = None,
+        optimizer: dict | None = None,
+        ckpt_path: str | None = None,
         ignore_keys: list = [],
         image_key: str = "image",
-        monitor: str = None,
+        monitor: str | None = None,
         discriminator: bool = True,
     ):
         super(CEVAE, self).__init__(

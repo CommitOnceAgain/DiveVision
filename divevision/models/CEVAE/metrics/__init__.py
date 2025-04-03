@@ -63,7 +63,7 @@ def _non_reference_metrics(img_rgb: np.ndarray, dict_key_suffix: str = "") -> Di
 
 def compute(
     rec_img_rgb: np.ndarray,
-    gt_img_rgb: np.ndarray = None,
+    gt_img_rgb: np.ndarray | None = None,
     inception=None,
     lpips=None,
     gt_metrics: bool = False,

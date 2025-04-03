@@ -16,14 +16,14 @@ def _torch_imgs_to_np(img: torch.Tensor) -> np.array:
     img = img.detach().cpu()
     img = torch.clamp(img, -1.0, 1.0)
     img = (img + 1.0) / 2.0
-    img = img.permute(0, 2, 3, 1).numpy()
-    return (255 * img).astype(np.uint8)
+    arr = img.permute(0, 2, 3, 1).numpy()
+    return (255 * arr).astype(np.uint8)
 
 
 class BaseModel(pl.LightningModule):
     def __init__(
         self,
-        lossconfig: dict = None,
+        lossconfig: dict | None = None,
         ignore_keys=[],
         image_key="image",
         monitor=None,

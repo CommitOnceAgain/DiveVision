@@ -1,13 +1,14 @@
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from lightning import pytorch as pl
 from omegaconf import OmegaConf
-from src.build.from_config import instantiate_from_config
-from src.util import rank_zero_log_only
+from build.from_config import instantiate_from_config
+from util import rank_zero_log_only
 from torch.utils.data import DataLoader, Dataset
 
 logger = logging.getLogger(__name__)
+
 
 class WrappedDataset(Dataset):
     """Wraps an arbitrary object with __len__ and __getitem__ into a pytorch dataset"""
@@ -23,9 +24,18 @@ class WrappedDataset(Dataset):
 
 
 class DataModuleFromConfig(pl.LightningDataModule):
-    def __init__(self, dataset_name: str, train_batch_size: int, val_batch_size: int = 1, test_batch_size: int = 1,
-                 train: Dict[str, Any] = None, validation: Dict[str, Any] = None, test: Dict[str, Any] = None,
-                 wrap: bool = False, num_workers: int = 4):
+    def __init__(
+        self,
+        dataset_name: str,
+        train_batch_size: int,
+        val_batch_size: int = 1,
+        test_batch_size: int = 1,
+        train: dict[str, Any] | None = None,
+        validation: dict[str, Any] | None = None,
+        test: dict[str, Any] | None = None,
+        wrap: bool = False,
+        num_workers: int = 4,
+    ):
         super().__init__()
         self.dataset_name = dataset_name
         self.train_batch_size = train_batch_size
@@ -47,26 +57,40 @@ class DataModuleFromConfig(pl.LightningDataModule):
 
     def prepare_data(self):
         for data_cfg in self.dataset_configs.values():
-            rank_zero_log_only(logger, f"Dataset configuration: {OmegaConf.to_yaml(data_cfg)}")
+            rank_zero_log_only(
+                logger, f"Dataset configuration: {OmegaConf.to_yaml(data_cfg)}"
+            )
             instantiate_from_config(data_cfg)
 
     def setup(self, stage=None):
         self.datasets = dict(
             (k, instantiate_from_config(self.dataset_configs[k]))
-            for k in self.dataset_configs)
+            for k in self.dataset_configs
+        )
         if self.wrap:
             for k in self.datasets:
                 self.datasets[k] = WrappedDataset(self.datasets[k])
 
     def _train_dataloader(self):
-        return DataLoader(self.datasets["train"], batch_size=self.train_batch_size,
-                          num_workers=self.num_workers, shuffle=True)
+        return DataLoader(
+            self.datasets["train"],
+            batch_size=self.train_batch_size,
+            num_workers=self.num_workers,
+            shuffle=True,
+        )
 
     def _val_dataloader(self):
-        return DataLoader(self.datasets["validation"],
-                          batch_size=self.val_batch_size,
-                          num_workers=self.num_workers, shuffle=False)
+        return DataLoader(
+            self.datasets["validation"],
+            batch_size=self.val_batch_size,
+            num_workers=self.num_workers,
+            shuffle=False,
+        )
 
     def _test_dataloader(self):
-        return DataLoader(self.datasets["test"], batch_size=self.test_batch_size,
-                          num_workers=self.num_workers, shuffle=False)
+        return DataLoader(
+            self.datasets["test"],
+            batch_size=self.test_batch_size,
+            num_workers=self.num_workers,
+            shuffle=False,
+        )
