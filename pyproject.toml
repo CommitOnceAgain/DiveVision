@@ -21,6 +21,7 @@ lightning = "^2.5.0.post0"
 opencv-python = "^4.11.0.86"
 omegaconf = "^2.3.0"
 albumentations = "^2.0.5"
+supabase = "^2.15.0"
 
 
 [tool.poetry.group.dev.dependencies]
