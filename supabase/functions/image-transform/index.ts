@@ -9,8 +9,11 @@ import { Database } from "../../database.types.ts";
 
 console.log("Hello from 'image-transform' function!");
 
-const API_SERVER_URL = "http://127.0.0.1:8000";
-
+// API Endpoint for Image Processing
+const ApiEndpointUrl = Deno.env.get("API_ENDPOINT");
+if (ApiEndpointUrl === undefined) {
+  throw new Error("API_ENDPOINT environment variable not found!");
+}
 // Define the expected type of record
 type SoRecord = Database["storage"]["Tables"]["objects"]["Row"];
 // Webhook definition
@@ -23,10 +26,8 @@ interface WebhookPayload {
 }
 
 Deno.serve(async (req) => {
-  // const payload: WebhookPayload = await req.json();
-  // const soRecord = payload.record;
-
-  const id = "3a654d2b-fc79-4919-b6e8-6a12c954167b";
+  const payload: WebhookPayload = await req.json();
+  const soRecord = payload.record;
 
   const supabaseAdminClient = createClient<Database>(
     // Supabase API URL - env var exported by default when deployed.
@@ -43,7 +44,7 @@ Deno.serve(async (req) => {
     )
     .from(
       "objects",
-    ).select("bucket_id, name, path_tokens").eq("id", id);
+    ).select("bucket_id, name, path_tokens").eq("id", soRecord.id);
   if (status) throw status;
 
   console.log(`Storage info retrieved: ${JSON.stringify(storageInfo)}`);
@@ -62,11 +63,32 @@ Deno.serve(async (req) => {
     );
   if (error) throw error;
   // Download image as blob
-  const signedUrl = url.signedUrl;
-  const response = await fetch(signedUrl);
-  const imageBlob = await response.blob();
+  const image = await fetch(url.signedUrl);
+  const imageBlob = await image.blob();
 
   console.log(`Fetched image (size=${imageBlob.size})`);
+
+  // Set up data to be sent via HTTP request
+  const imageBody = new FormData();
+  imageBody.append("file", imageBlob, name);
+
+  console.log(imageBody);
+
+  // Make POST request to the API endpoint for image processing
+  const request = new Request(ApiEndpointUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: imageBody,
+  });
+  const processedImage = await fetch(request);
+  console.log(request.url);
+  console.log();
+
+  // Save received (!) image to Supabase storage
+  supabaseAdminClient.storage.from(
+    "processedimages",
+  ).upload(path, processedImage.body!).catch((error) => console.log(error));
+  console.log("Uploaded processed image");
 
   return new Response("ok");
 });
