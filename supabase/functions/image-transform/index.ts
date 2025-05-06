@@ -9,11 +9,13 @@ import { Database } from "../../database.types.ts";
 
 console.log("Hello from 'image-transform' function!");
 
-const API_SERVER_URL = "http://localhost:8000";
+const API_SERVER_URL = "http://127.0.0.1:8000";
 
+// Define the expected type of record
 type SoRecord = Database["storage"]["Tables"]["objects"]["Row"];
+// Webhook definition
 interface WebhookPayload {
-  type: "INSERT" | "UPDATE" | "DELETE";
+  type: "INSERT";
   table: string;
   record: SoRecord;
   schema: "public";
@@ -24,8 +26,7 @@ Deno.serve(async (req) => {
   // const payload: WebhookPayload = await req.json();
   // const soRecord = payload.record;
 
-  const id = "4b1205b8-183a-4a17-9ba8-d371e5b7c44e";
-  const bucket_id = "images";
+  const id = "3a654d2b-fc79-4919-b6e8-6a12c954167b";
 
   const supabaseAdminClient = createClient<Database>(
     // Supabase API URL - env var exported by default when deployed.
@@ -42,33 +43,30 @@ Deno.serve(async (req) => {
     )
     .from(
       "objects",
-    ).select("path_tokens").eq("id", id);
+    ).select("bucket_id, name, path_tokens").eq("id", id);
   if (status) throw status;
 
-  console.log(`Storage info retrieved: ${storageInfo}`);
+  console.log(`Storage info retrieved: ${JSON.stringify(storageInfo)}`);
+  // Destructuring storage information
+  const bucket = storageInfo[0].bucket_id!;
+  const path = storageInfo[0].path_tokens?.join("/")!;
+  const name = storageInfo[0].name!;
 
   // Construct image url from storage
-  const { data: url, error } = await supabaseAdminClient
-    .storage
-    .from(bucket_id!)
-    .createSignedUrl(storageInfo!.join("/"), 60);
+  const { data: url, error } = await supabaseAdminClient.storage.from(
+    bucket,
+  )
+    .createSignedUrl(
+      path,
+      60,
+    );
   if (error) throw error;
+  // Download image as blob
   const signedUrl = url.signedUrl;
-  const imageData = new FormData();
-  // Download the image, and append it as HTTP body
-  imageData.append("image", await (await fetch(signedUrl)).blob());
+  const response = await fetch(signedUrl);
+  const imageBlob = await response.blob();
 
-  // // Run image transformation
-  // await fetch(`${API_SERVER_URL}/image/`, { method: "POST", body: imageData })
-  //   .then((response) => response.blob())
-  //   .then((data) => {
-  //     // Store image caption in Database table
-  //     supabaseAdminClient
-  //       .from("images")
-  //       .insert({ id: soRecord.id!, processedimageid: data })
-  //       .throwOnError();
-  //   })
-  //   .catch((error) => console.error(error));
+  console.log(`Fetched image (size=${imageBlob.size})`);
 
   return new Response("ok");
 });
