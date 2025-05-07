@@ -80,14 +80,17 @@ Deno.serve(async (req) => {
     headers: { "Content-Type": "application/json" },
     body: imageBody,
   });
-  const processedImage = await fetch(request);
-  console.log(request.url);
-  console.log();
+  const processedImage = await (await fetch(request)).blob();
+  console.log(processedImage.size);
 
-  // Save received (!) image to Supabase storage
+  // Save processed image to Supabase storage
   supabaseAdminClient.storage.from(
     "processedimages",
-  ).upload(path, processedImage.body!).catch((error) => console.log(error));
+  ).upload(path, processedImage, {
+    contentType: "image/jpg",
+    upsert: false,
+  })
+    .catch((error) => console.log(error));
   console.log("Uploaded processed image");
 
   return new Response("ok");
