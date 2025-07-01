@@ -1,7 +1,7 @@
 model:
   target: divevision.models.CEVAE.models.cevae.CEVAE
   params:
-    ckpt_path: divevision/models/CEVAE/cevae_checkpoint.ckpt
+    ckpt_path: divevision/models/CEVAE/lsui-cevae-epoch119.ckpt
     embed_dim: 256
     ddconfig:
       double_z: False

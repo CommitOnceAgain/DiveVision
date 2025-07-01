@@ -22,10 +22,15 @@ Clone the repository
 ### Steps
 
 1. ```poetry install```
-2. Try and run the notebook `test_model.ipynb` to see if everything is working, using the poetry environment
+2. Download necessary resources by runing ```./download_resources.sh```
+3. Try and run the notebook `test_model.ipynb` to see if everything is working, using the poetry environment
 
 ## Resources
 
 - **U-Shape Transformer for Underwater Image Enhancement. Peng L., Zhu C., Bian L., 2021**
     - [Github](https://github.com/LintaoPeng/U-shape_Transformer_for_Underwater_Image_Enhancement)
     - [Paper](https://arxiv.org/abs/2111.11843)
+
+- **CE-VAE: Capsule Enhanced Variational AutoEncoder for Underwater Image Enhancement. Pucci R., Martinal N., 2024**
+    - [Github](https://github.com/iN1k1/ce-vae-underwater-image-enhancement)
+    - [Paper](https://arxiv.org/pdf/2406.01294v2)
