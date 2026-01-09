@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONPATH=/app
+    volumes:
+      - ./divevision:/app/divevision
+    restart: unless-stopped
+
+  mlflow:
+    build:
+      context: .
+      dockerfile: Dockerfile.benchmark
+    ports:
+      - "5000:5000"
+    environment:
+      - PYTHONPATH=/app
+      - MLFLOW_HOST=0.0.0.0
+      - MLFLOW_PORT=5000
+    env_file:
+      - .env
+    volumes:
+      - ./divevision:/app/divevision
+      - ./mlflow_server.sh:/app/mlflow_server.sh
+    restart: unless-stopped
+    depends_on:
+      - postgres
+
+  benchmark:
+    build:
+      context: .
+      dockerfile: Dockerfile.benchmark
+    environment:
+      - PYTHONPATH=/app
+    env_file:
+      - .env
+    volumes:
+      - ./divevision:/app/divevision
+    depends_on:
+      - mlflow
+    profiles:
+      - benchmark
+
+  postgres:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=${SUPABASE_POSTGRES_DB:-postgres}
+      - POSTGRES_USER=${SUPABASE_POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${SUPABASE_POSTGRES_PASSWORD}
+    ports:
+      - "${SUPABASE_POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
