@@ -5,7 +5,7 @@ from typing import Annotated
 
 from fastapi import Depends, FastAPI, File, Header, HTTPException, Response, UploadFile
 from fastapi.responses import HTMLResponse
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 from pydantic import BaseModel, ConfigDict
 
 from divevision.src.app import supabase_api
@@ -90,13 +90,27 @@ async def upload_file(
     processed images are now saved to storage and tracked in the `photos`
     table instead of being discarded after the response is sent.
     """
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="File is not an image")
+
     access_token, refresh_token = tokens
 
-    model = UShapeModelWrapper()
     contents = await file.read()
-    with io.BytesIO(contents) as f:
-        image = Image.open(f)
-        output: Image.Image = model.predict(image)[0]  # predict() returns a list
+    file_buffer = io.BytesIO(contents)
+    try:
+        image = Image.open(file_buffer)
+        image.verify()  # Verify the image
+    except UnidentifiedImageError:
+        raise HTTPException(status_code=400, detail="Invalid image file")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error processing image: {str(e)}")
+
+    # verify() leaves the Image unusable for further processing; reopen it.
+    file_buffer.seek(0)
+    image = Image.open(file_buffer)
+
+    model = UShapeModelWrapper()
+    output: Image.Image = model.predict(image)[0]  # predict() returns a list
 
     buffer = io.BytesIO()
     output.save(buffer, "PNG")
