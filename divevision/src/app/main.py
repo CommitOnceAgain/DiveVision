@@ -1,8 +1,8 @@
 import io
 
-from fastapi import FastAPI, File, Response, UploadFile
+from fastapi import FastAPI, File, HTTPException, Response, UploadFile
 from fastapi.responses import HTMLResponse
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 
 from divevision.src.models.u_shape_model import UShapeModelWrapper
 
@@ -30,13 +30,28 @@ async def root():
     response_class=Response,
 )
 async def upload_file(file: UploadFile = File(...)):
-    model = UShapeModelWrapper()
-    with file.file as f:
-        image = Image.open(f)
+    # Check if the file is an image
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(status_code=400, detail="File is not an image")
+
+    # Read the file content
+    file_content = await file.read()
+    file_buffer = io.BytesIO(file_content)
+
+    try:
+        # Attempt to open the image
+        image = Image.open(file_buffer)
+        image.verify()  # Verify the image
+    except UnidentifiedImageError:
+        raise HTTPException(status_code=400, detail="Invalid image file")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error processing image: {str(e)}")
+    else:
+        model = UShapeModelWrapper()
         output: Image.Image = model.predict(image)[0]  # predict() returns a list
 
-    # Convert the image as PNG instead of raw data before returning it
-    buffer = io.BytesIO()
-    output.save(buffer, "PNG")
+        # Convert the image as PNG instead of raw data before returning it
+        buffer = io.BytesIO()
+        output.save(buffer, "PNG")
 
-    return Response(content=buffer.getvalue(), media_type="image/png")
+        return Response(content=buffer.getvalue(), media_type="image/png")
