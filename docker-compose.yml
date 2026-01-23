@@ -10,6 +10,8 @@ services:
     volumes:
       - ./divevision:/app/divevision
     restart: unless-stopped
+    networks:
+      - frontend-network
 
   mlflow:
     build:
@@ -42,18 +44,32 @@ services:
       - mlflow
     profiles:
       - benchmark
+    networks:
+      - backend-network
 
   postgres:
     image: postgres:15
-    environment:
-      - POSTGRES_DB=${SUPABASE_POSTGRES_DB:-postgres}
-      - POSTGRES_USER=${SUPABASE_POSTGRES_USER:-postgres}
-      - POSTGRES_PASSWORD=${SUPABASE_POSTGRES_PASSWORD}
+    env_file:
+      - .env
     ports:
-      - "${SUPABASE_POSTGRES_PORT:-5432}:5432"
+      - "${SUPABASE_POSTGRES_PORT}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - backend-network
+
+networks:
+  backend-network:
+    driver: bridge
+    internal: false # Allows for communication with other services
+  frontend-network:
+    driver: bridge
 
 volumes:
   postgres_data:
