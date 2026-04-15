@@ -1,6 +1,16 @@
 # Ignore the data folder
 divevision/data/*/
 
+# Ignore config, opencode, and specify folders
+.config/
+.opencode/
+.specify/
+
+# Ignore model weights
+*.npz
+*.ckpt
+*.pth
+
 # Ignore VS Code cache
 .vscode/*
 
