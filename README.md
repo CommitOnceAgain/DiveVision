@@ -1,36 +1,93 @@
 # DiveVision
 
-This project aims at exploring solutions regarding **Underwater Image Restoration**.
+DiveVision explores solutions for **underwater image restoration / enhancement**. The project
+has two current strands of work:
 
-At this time, the goal is to use off-the-shelves models and test their performance on the [LSUI dataset](https://bianlab.github.io/data.html).
+1. **Experiment workflow** — testing and comparing underwater image enhancement models
+   (currently [U-Shape Transformer](https://github.com/LintaoPeng/U-shape_Transformer_for_Underwater_Image_Enhancement)
+   and [CE-VAE](https://github.com/iN1k1/ce-vae-underwater-image-enhancement)), benchmarked with
+   MLflow against the LSUI and UIEB datasets.
+2. **Mobile app serving the tested models** — very early stage. The current goal is simply to
+   serve a model's output to a mobile client. Social-network features and photo geolocation are
+   **future work**, not part of the current scope.
 
-The project will be enhanced, and here are some perspectives:
-- build and train a model (probably a ViT)
-- monitor the model performances (MLFlow?)
-- make a FastAPI server to serve the model
-- build a web app
-- build a mobile app
+## What exists today
+
+- **Model wrappers** for U-Shape Transformer and CE-VAE (`divevision/models/`,
+  `divevision/src/models/`), sharing a common `AbstractModel` interface
+  (`divevision/src/models/abstract_model.py`).
+- **A benchmark pipeline** (`divevision/src/test.py`) that runs each model against the LSUI and
+  UIEB datasets, computes SSIM/PSNR metrics, and logs runs to MLflow.
+- **A minimal FastAPI server** (`divevision/src/app/main.py`) with a single endpoint that accepts
+  an uploaded image and returns the U-Shape Transformer's enhanced output as a PNG. This is the
+  seed of the "serve a model to a client" mobile-app goal above — it is not yet wired up to any
+  mobile client.
+- **Tests** for the models and the FastAPI app (`divevision/test/`).
+
+## Roadmap (not implemented yet)
+
+- Training a model from scratch (the README previously implied this existed — it does not; only
+  inference over pretrained checkpoints is implemented).
+- A dedicated web app.
+- A real mobile app client consuming the FastAPI endpoint (or its successor).
+- Social-network features and photo geolocation — explicitly out of scope until the above lands.
 
 ## Installation
 
 ### Prerequisites
 
-Python 3.12<br>
-[Poetry](https://python-poetry.org/)<br>
-Clone the repository
+- Python 3.12
+- [Poetry](https://python-poetry.org/)
+- Clone the repository
 
 ### Steps
 
-1. ```poetry install```
-2. Download necessary resources by runing ```./download_resources.sh```
-3. Try and run the notebook `test_model.ipynb` to see if everything is working, using the poetry environment
+1. `poetry install`
+2. Download pretrained model weights: `./download_resources.sh`
+   - This fetches only **model weights**, not the datasets (see below).
+   - **Known issue:** the CE-VAE checkpoint download (`lsui-cevae-epoch119.ckpt`, via Google
+     Drive) currently returns a 404 — the link is dead. `download_resources.sh` will appear to
+     run but the CE-VAE model will be left without weights. The U-Shape Transformer weights
+     download works. Track/fix the CE-VAE link before relying on CE-VAE results.
+3. Download the datasets yourself — **this is not automated by any script in this repo**:
+   - [LSUI dataset](https://bianlab.github.io/data.html) — expected at `divevision/data/LSUI/`,
+     with `GT/` and `input/` subdirectories (see `divevision/src/datasets/lsui_dataset.py`).
+   - [UIEB dataset](https://li-chongyi.github.io/proj_benchmark.html) — expected at
+     `divevision/data/UIEB/`, with `raw-890/` and `reference-890/` subdirectories (see
+     `divevision/src/datasets/uieb_dataset.py`). Academic use only, per the dataset's terms.
+4. Try the notebook `divevision/notebooks/test_model.ipynb` to check that a model runs
+   end-to-end, using the poetry environment.
+
+## Running the benchmark
+
+`divevision/src/test.py` runs both models against both datasets and logs metrics to MLflow.
+
+1. Copy `.env_example` to `.env` and fill in the MLflow/Supabase/S3 variables it expects.
+2. Start an MLflow tracking server: `./mlflow_server.sh` (reads `.env`, backs onto a Supabase
+   Postgres DB and S3-compatible storage for run/artifact storage).
+3. Run the benchmark: `poetry run python -m divevision.src.test`
+
+## Running the FastAPI server
+
+```
+poetry run fastapi dev divevision/src/app/main.py
+```
+
+This exposes a form at `/` to upload an image and a `POST /image/` endpoint that returns the
+U-Shape Transformer's enhanced PNG output. There is no mobile client in this repository yet.
+
+## Running tests
+
+```
+poetry run pytest
+```
 
 ## Resources
 
-- **U-Shape Transformer for Underwater Image Enhancement. Peng L., Zhu C., Bian L., 2021**
-    - [Github](https://github.com/LintaoPeng/U-shape_Transformer_for_Underwater_Image_Enhancement)
-    - [Paper](https://arxiv.org/abs/2111.11843)
-
-- **CE-VAE: Capsule Enhanced Variational AutoEncoder for Underwater Image Enhancement. Pucci R., Martinal N., 2024**
-    - [Github](https://github.com/iN1k1/ce-vae-underwater-image-enhancement)
-    - [Paper](https://arxiv.org/pdf/2406.01294v2)
+- **U-Shape Transformer for Underwater Image Enhancement.** Peng L., Zhu C., Bian L., 2021.
+  [Github](https://github.com/LintaoPeng/U-shape_Transformer_for_Underwater_Image_Enhancement) —
+  [Paper](https://arxiv.org/abs/2111.11843)
+- **CE-VAE: Capsule Enhanced Variational AutoEncoder for Underwater Image Enhancement.** Pucci R.,
+  Martinal N., 2024.
+  [Github](https://github.com/iN1k1/ce-vae-underwater-image-enhancement) —
+  [Paper](https://arxiv.org/pdf/2406.01294v2)
