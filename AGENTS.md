@@ -1,5 +1,8 @@
 # Project agent memory
 
+For domain vocabulary (Enhancement Model, Benchmark Dataset, Reference Image, etc.), see
+`CONTEXT.md`. Architectural decisions are recorded in `docs/adr/`.
+
 DiveVision has two current strands of work — see `README.md` for the full picture:
 
 1. **Experiment workflow**: testing/comparing underwater image enhancement models (U-Shape
