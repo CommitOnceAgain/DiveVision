@@ -102,6 +102,17 @@ def test_upload_image_generates_path_under_bucket(mock_client):
     assert upload_call.call_args.kwargs["file"] == b"raw-bytes"
 
 
+def test_upload_image_sets_content_type_from_actual_image_bytes(mock_client):
+    mock_client.auth.get_session.return_value = _session()
+
+    supabase_api.upload_image(
+        "access", "refresh", _png_bytes(), supabase_api.IMAGES_BUCKET
+    )
+
+    upload_call = mock_client.storage.from_.return_value.upload
+    assert upload_call.call_args.kwargs["file_options"]["content-type"] == "image/png"
+
+
 def test_upload_image_uses_explicit_path(mock_client):
     mock_client.auth.get_session.return_value = _session()
 

@@ -50,7 +50,9 @@ def _client_for_session(access_token: str, refresh_token: str) -> supabase.Clien
 
 
 def _not_logged_in_error() -> supabase.AuthApiError:
-    return supabase.AuthApiError(message="User is not logged in", status=401, code=None)
+    return supabase.AuthApiError(
+        message="User is not logged in", status=401, code="session_not_found"
+    )
 
 
 def create_user(
