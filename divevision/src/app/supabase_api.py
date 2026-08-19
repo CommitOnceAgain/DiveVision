@@ -101,6 +101,15 @@ def sign_in_user(
     }
 
 
+def _detect_content_type(file: bytes) -> str:
+    """Sniff the actual image format from its bytes rather than assuming one."""
+    try:
+        with Image.open(BytesIO(file)) as image:
+            return image.get_format_mimetype() or "application/octet-stream"
+    except OSError:
+        return "application/octet-stream"
+
+
 def upload_image(
     access_token: str,
     refresh_token: str,
@@ -126,7 +135,7 @@ def upload_image(
             path=remote_path,
             file=file,
             file_options={
-                "content-type": "image/jpeg",
+                "content-type": _detect_content_type(file),
             },
         )
     except _STORAGE_ERRORS as e:
