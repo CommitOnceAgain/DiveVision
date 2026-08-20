@@ -18,10 +18,14 @@ has two current strands of work:
   (`divevision/src/models/abstract_model.py`).
 - **A benchmark pipeline** (`divevision/src/test.py`) that runs each model against the LSUI and
   UIEB datasets, computes SSIM/PSNR metrics, and logs runs to MLflow.
-- **A minimal FastAPI server** (`divevision/src/app/main.py`) with a single endpoint that accepts
-  an uploaded image and returns the U-Shape Transformer's enhanced output as a PNG. This is the
-  seed of the "serve a model to a client" mobile-app goal above — it is not yet wired up to any
-  mobile client.
+- **A FastAPI server** (`divevision/src/app/main.py`) backed by Supabase (auth, photo storage,
+  a `photos` table — see `AGENTS.md`). Endpoints: `/signup/` and `/login/`; an authenticated
+  `POST /image/` that runs the U-Shape Transformer on an uploaded image, returns the enhanced
+  PNG, and persists the original/processed photos plus a `photos` row; `DELETE /photos/{id}/`
+  and `DELETE /account/` (full GDPR account erasure); and a shared-secret-gated
+  `POST /leaderboard/` used by the benchmark pipeline to record scores. This is the seed of the
+  "serve a model to a client" mobile-app goal above — it is not yet wired up to any mobile
+  client.
 - **Tests** for the models and the FastAPI app (`divevision/test/`).
 
 ## Roadmap (not implemented yet)
@@ -69,12 +73,19 @@ has two current strands of work:
 
 ## Running the FastAPI server
 
+Fill in this app's own Supabase project variables (`SUPABASE_URL`, `SUPABASE_KEY`,
+`SUPABASE_SERVICE_ROLE_KEY`, `LEADERBOARD_SHARED_SECRET`) in `.env` — see `AGENTS.md` for why
+this is a separate project from the MLflow tracking backend's. Validate `supabase/migrations/`
+locally with `supabase start` (requires Docker) before relying on them.
+
 ```
 poetry run fastapi dev divevision/src/app/main.py
 ```
 
-This exposes a form at `/` to upload an image and a `POST /image/` endpoint that returns the
-U-Shape Transformer's enhanced PNG output. There is no mobile client in this repository yet.
+This exposes a form at `/` to upload an image, plus `/signup/`, `/login/`, an authenticated
+`POST /image/` that returns the U-Shape Transformer's enhanced PNG output (and persists it —
+see `AGENTS.md`), `DELETE /photos/{id}/`, `DELETE /account/`, and `POST /leaderboard/`. There is
+no mobile client in this repository yet.
 
 ## Running tests
 
