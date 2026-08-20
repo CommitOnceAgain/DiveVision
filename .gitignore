@@ -1,7 +1,7 @@
 # Ignore the data folder
 divevision/data/*/
 
-# LPIPS checkpoint download cache (see divevision/src/models/CEVAE/modules/losses/lpips.py)
+# LPIPS checkpoint download cache (see divevision/models/CEVAE/modules/losses/lpips.py)
 taming/
 
 # Ignore VS Code cache
