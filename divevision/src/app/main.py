@@ -104,13 +104,13 @@ async def upload_file(
         raise HTTPException(status_code=400, detail="Invalid image file")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing image: {str(e)}")
+    else:
+        # verify() leaves the image unusable for further processing, so reopen it
+        file_buffer.seek(0)
+        image = Image.open(file_buffer)
 
-    # verify() leaves the Image unusable for further processing; reopen it.
-    file_buffer.seek(0)
-    image = Image.open(file_buffer)
-
-    model = UShapeModelWrapper()
-    output: Image.Image = model.predict(image)[0]  # predict() returns a list
+        model = UShapeModelWrapper()
+        output: Image.Image = model.predict(image)[0]  # predict() returns a list
 
     buffer = io.BytesIO()
     output.save(buffer, "PNG")

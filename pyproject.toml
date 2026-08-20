@@ -37,6 +37,9 @@ isort = "^6.0.1"
 mypy = "^1.15.0"
 bandit = "^1.8.3"
 
+[tool.poetry.group.benchmark.dependencies]
+psycopg2-binary = "^2.9.12"
+
 [tool.mypy]
 ignore_missing_imports = true
 

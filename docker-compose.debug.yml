@@ -8,6 +8,8 @@ services:
     environment:
       - PYTHONPATH=/app
       - PYTHON_DEBUG=1
+      # Reach the mlflow tracking server by its service name, overriding .env
+      - MLFLOW_HOST=mlflow
     env_file:
       - .env
     volumes:
