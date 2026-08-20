@@ -163,6 +163,49 @@ def test_upload_image_marks_failed_when_processed_upload_fails(monkeypatch):
     assert failed == ["photo-1"]
 
 
+def test_upload_image_deletes_original_when_create_photo_fails(monkeypatch):
+    random_image = Image.fromarray(np.zeros((128, 128, 3), dtype=np.uint8), mode="RGB")
+    buffer = io.BytesIO()
+    random_image.save(buffer, "PNG")
+
+    def fake_predict(self, image):
+        image.load()
+        return [image]
+
+    fake_model = type("FakeModel", (), {"name": "U-Shape", "predict": fake_predict})()
+    monkeypatch.setattr(
+        "divevision.src.app.main.UShapeModelWrapper", lambda: fake_model
+    )
+
+    monkeypatch.setattr(
+        supabase_api,
+        "upload_image",
+        lambda access_token, refresh_token, file, bucket, path=None: "user-123/original.jpg",
+    )
+    monkeypatch.setattr(
+        supabase_api,
+        "create_photo",
+        lambda access_token, refresh_token, original_path, model_name: None,
+    )
+    deleted = []
+    monkeypatch.setattr(
+        supabase_api,
+        "delete_image",
+        lambda access_token, refresh_token, path, bucket: deleted.append(
+            (path, bucket)
+        ),
+    )
+
+    response = client.post(
+        "/image/",
+        files={"file": ("foo.png", buffer.getvalue(), "image/png")},
+        headers=AUTH_HEADERS,
+    )
+
+    assert response.status_code == 502
+    assert deleted == [("user-123/original.jpg", supabase_api.IMAGES_BUCKET)]
+
+
 def test_delete_photo(monkeypatch):
     monkeypatch.setattr(
         supabase_api,
