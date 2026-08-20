@@ -49,10 +49,9 @@ has two current strands of work:
 1. `poetry install`
 2. Download pretrained model weights: `./download_resources.sh`
    - This fetches only **model weights**, not the datasets (see below).
-   - **Known issue:** the CE-VAE checkpoint download (`lsui-cevae-epoch119.ckpt`, via Google
-     Drive) currently returns a 404 — the link is dead. `download_resources.sh` will appear to
-     run but the CE-VAE model will be left without weights. The U-Shape Transformer weights
-     download works. Track/fix the CE-VAE link before relying on CE-VAE results.
+   - The CE-VAE checkpoint (`lsui-cevae-epoch119.ckpt`) is fetched from a GitHub Release asset
+     on this repo (`cevae-checkpoint-v1` tag), and the U-Shape Transformer weights from Google
+     Drive.
 3. Download the datasets yourself — **this is not automated by any script in this repo**:
    - [LSUI dataset](https://bianlab.github.io/data.html) — expected at `divevision/data/LSUI/`,
      with `GT/` and `input/` subdirectories (see `divevision/src/datasets/lsui_dataset.py`).

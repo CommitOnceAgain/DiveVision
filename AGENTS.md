@@ -34,8 +34,10 @@ DiveVision has two current strands of work — see `README.md` for the full pict
 
 - `download_resources.sh` only fetches model weights, not the LSUI/UIEB datasets themselves —
   those must be obtained manually (see README's Installation section for expected paths).
-- The CE-VAE checkpoint download in `download_resources.sh` points to a dead Google Drive link
-  (404). U-Shape Transformer's weights download works.
+- The CE-VAE checkpoint (`lsui-cevae-epoch119.ckpt`) is fetched from a GitHub Release asset
+  (`cevae-checkpoint-v1` tag on this repo) rather than the old, dead Google Drive link. If it
+  ever needs re-hosting, upload a new asset via `gh release upload` and update the URL in
+  `download_cevae_resources`.
 
 ## Supabase: two separate projects
 

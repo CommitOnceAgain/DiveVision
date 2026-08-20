@@ -17,7 +17,7 @@ function download_cevae_resources () {
     wget -P divevision/models/CEVAE/metrics/ https://raw.githubusercontent.com/xinntao/EDVR/master/basicsr/metrics/niqe_pris_params.npz
     
     # Model weights
-    poetry run gdown -O divevision/models/CEVAE/lsui-cevae-epoch119.ckpt https://drive.google.com/uc?id=1EJHykrwPqegmdWsrAT2Qd8ScYs7flX-i&confirm=t&uuid=197f6233-5f60-4fa9-81ab-af8e2a53d061 &
+    wget -O divevision/models/CEVAE/lsui-cevae-epoch119.ckpt https://github.com/ahennequin/DiveVision/releases/download/cevae-checkpoint-v1/lsui-cevae-epoch119.ckpt &
 }
 
 download_u_shape_transformer_resources
