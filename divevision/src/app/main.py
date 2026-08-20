@@ -114,6 +114,9 @@ async def upload_file(
         access_token, refresh_token, original_path, model.name
     )
     if photo_id is None:
+        supabase_api.delete_image(
+            access_token, refresh_token, original_path, supabase_api.IMAGES_BUCKET
+        )
         raise HTTPException(status_code=502, detail="Could not record the photo")
 
     # Store the processed result under the same relative path as the original.
