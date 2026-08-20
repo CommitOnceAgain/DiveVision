@@ -56,7 +56,8 @@ services:
     volumes:
       - ./divevision:/app/divevision
     depends_on:
-      - mlflow
+      mlflow:
+        condition: service_healthy
     profiles:
       - benchmark
     networks:
