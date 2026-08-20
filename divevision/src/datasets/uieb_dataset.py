@@ -9,7 +9,7 @@ from divevision.src.datasets.abstract_dataset import AbstractDataset
 
 
 class UIEBDataset(Dataset, AbstractDataset):
-    """IUEB dataset PyTorch Dataset implementation. More information are found on the project page (https://li-chongyi.github.io/proj_benchmark.html).
+    """UIEB Benchmark Dataset PyTorch Dataset implementation. More information are found on the project page (https://li-chongyi.github.io/proj_benchmark.html).
 
     This dataset should only be used for academic purposes."""
 
@@ -26,24 +26,24 @@ class UIEBDataset(Dataset, AbstractDataset):
         self.data = self.load_data()
 
     def load_data(self) -> tuple[list[str], list[str]]:
-        """Initialize the dataset and return a tuple containing two lists, respectively the paths to the raw images, and the paths to the target images."""
+        """Initialize the UIEB Benchmark Dataset and return a tuple containing two lists, respectively the paths to the Degraded Images, and the paths to the Reference Images."""
         dataset_path = Path(self.root_dir)
-        inputs_path = dataset_path.joinpath("raw-890")
-        labels_path = dataset_path.joinpath("reference-890")
+        degraded_dir = dataset_path.joinpath("raw-890")
+        reference_dir = dataset_path.joinpath("reference-890")
         # Check that subdirectories exists
         assert (
-            inputs_path.is_dir() and labels_path.is_dir()
+            degraded_dir.is_dir() and reference_dir.is_dir()
         ), "Subdirectories 'raw-890' and 'reference-890' must exist in the dataset directory."
 
         # Check that subdirectories contain the same number of images
-        assert len(list(inputs_path.iterdir())) == len(
-            list(labels_path.iterdir())
+        assert len(list(degraded_dir.iterdir())) == len(
+            list(reference_dir.iterdir())
         ), "The two subdirectories must contain the same number of images"
 
-        inputs_filepaths = sorted([str(x) for x in inputs_path.glob("*.png")])
-        labels_filepaths = sorted([str(x) for x in labels_path.glob("*.png")])
+        degraded_filepaths = sorted([str(x) for x in degraded_dir.glob("*.png")])
+        reference_filepaths = sorted([str(x) for x in reference_dir.glob("*.png")])
 
-        return inputs_filepaths, labels_filepaths
+        return degraded_filepaths, reference_filepaths
 
     def __len__(self) -> int:
         """Return the number of samples in the dataset."""
@@ -51,15 +51,18 @@ class UIEBDataset(Dataset, AbstractDataset):
 
     def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
         """Get a sample from the dataset."""
-        input_filepath, label_filepath = self.data[0][idx], self.data[1][idx]
+        degraded_filepath, reference_filepath = self.data[0][idx], self.data[1][idx]
         # Load the images as PIL images
-        input_img, label_img = Image.open(input_filepath), Image.open(label_filepath)
+        degraded_image, reference_image = (
+            Image.open(degraded_filepath),
+            Image.open(reference_filepath),
+        )
         # Apply the transforms to both images
         if self.transform is not None:
-            input = self.transform(input_img)
-            label = self.transform(label_img)
+            degraded_image = self.transform(degraded_image)
+            reference_image = self.transform(reference_image)
         else:  # If no transform is provided, convert the images to tensors
-            input = torchvision.transforms.ToTensor()(input_img)
-            label = torchvision.transforms.ToTensor()(label_img)
+            degraded_image = torchvision.transforms.ToTensor()(degraded_image)
+            reference_image = torchvision.transforms.ToTensor()(reference_image)
 
-        return input, label
+        return degraded_image, reference_image

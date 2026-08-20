@@ -43,91 +43,101 @@ def extract_last_metrics(
     return output_dict
 
 
-def full_test_routine(
-    models: list[AbstractModel],
+def run_benchmark(
+    enhancement_models: list[AbstractModel],
     dataset_classes: list[type[AbstractDataset]],
-    metrics: list[AbstractMetric],
+    evaluation_metrics: list[AbstractMetric],
 ) -> None:
 
-    # Save MLFlow experiment
+    # Set the MLflow Experiment that will group every Benchmark Run below
     mlflow.set_experiment("Model testing")
 
-    for model in models:
-        # Retrieve the model device
-        device = next(model.parameters()).device
+    for enhancement_model in enhancement_models:
+        # Retrieve the Enhancement Model device
+        device = next(enhancement_model.parameters()).device
 
-        for dataset in dataset_classes:
-            # Start a run per model and per dataset
-            run = mlflow.start_run()
+        for dataset_class in dataset_classes:
+            # Start a Benchmark Run per Enhancement Model and per Benchmark Dataset
+            benchmark_run = mlflow.start_run()
 
-            # Instanciate dataset object
-            data = dataset(transform=model.preprocessing)
+            # Instanciate the Benchmark Dataset
+            benchmark_dataset = dataset_class(transform=enhancement_model.preprocessing)
 
             dataloader = DataLoader(
-                data,
+                benchmark_dataset,
                 batch_size=8,
                 shuffle=False,  # For reproducibility
                 num_workers=4,
                 pin_memory=True,
             )
-            metrics_val_list: dict[str, list[float]] = defaultdict(list)
+            evaluation_metric_values: dict[str, list[float]] = defaultdict(list)
 
-            start_testing_loop = time.process_time()
-            # Iterate over the dataset
-            for batch_step, (input, label) in tqdm(
+            benchmark_run_start = time.process_time()
+            # Iterate over the Benchmark Dataset
+            for batch_step, (degraded_image, reference_image) in tqdm(
                 enumerate(dataloader),
-                desc="Iterating over the test dataset...",
+                desc="Iterating over the Benchmark Dataset...",
                 unit="batch",
             ):
-                # Infer an output from the model
+                # Infer an output from the Enhancement Model
                 with torch.no_grad():
                     # Return fraction time (in seconds)
                     start = time.process_time()
                     # Forward pass
-                    output: torch.Tensor = model.forward(input.to(device))
+                    model_output: torch.Tensor = enhancement_model.forward(
+                        degraded_image.to(device)
+                    )
                     elapsed = time.process_time() - start
 
-                    metrics_val_list["elapsed_s"].append(
+                    evaluation_metric_values["elapsed_s"].append(
                         [elapsed]
                     )  # Store as a list for compatiblity (see later use of itertools.chain.from_iterable)
-                    # Compute metrics between model output and label
-                    for metric in metrics:
-                        val_metric: torch.Tensor = metric.compute(output, label)
+                    # Compute Evaluation Metrics between the model output and Reference Image
+                    for evaluation_metric in evaluation_metrics:
+                        metric_value: torch.Tensor = evaluation_metric.compute(
+                            model_output, reference_image
+                        )
                         # Store metric values
-                        metrics_val_list[metric.name].append(val_metric.tolist())
+                        evaluation_metric_values[evaluation_metric.name].append(
+                            metric_value.tolist()
+                        )
 
                     mlflow.log_metrics(
-                        metrics=extract_last_metrics(metrics_val_list, prefix="batch_"),
+                        metrics=extract_last_metrics(
+                            evaluation_metric_values, prefix="batch_"
+                        ),
                         step=batch_step,
-                        run_id=run.info.run_id,
+                        run_id=benchmark_run.info.run_id,
                     )
 
-            testing_loop_elapsed = time.process_time() - start_testing_loop
+            benchmark_run_elapsed = time.process_time() - benchmark_run_start
 
             # Report all metrics
-            metrics_final = {}
-            for metric_name, values in metrics_val_list.items():
+            aggregated_metric_values = {}
+            for metric_name, values in evaluation_metric_values.items():
                 # If batch size > 1, 'metrics' is composed of list of lists, and need to be flattened
-                flatten_values = list(itertools.chain.from_iterable(values))
-                metrics_final["global_" + metric_name] = np.mean(flatten_values)
+                flattened_values = list(itertools.chain.from_iterable(values))
+                aggregated_metric_values["global_" + metric_name] = np.mean(
+                    flattened_values
+                )
 
             # Update 'global_elapsed_s' with the correct time
-            metrics_final["global_elapsed_s"] = testing_loop_elapsed
+            aggregated_metric_values["global_elapsed_s"] = benchmark_run_elapsed
 
-            # Log information about the model and dataset used for testing as parameters
+            # Log information about the Enhancement Model and Benchmark Dataset used as parameters
             mlflow.log_params(
                 {
-                    "model_name": model.name,
-                    "dataset_name": data.name,
+                    "model_name": enhancement_model.name,
+                    "dataset_name": benchmark_dataset.name,
                 }
             )
 
             mlflow.log_metrics(
-                metrics=metrics_final,
-                run_id=run.info.run_id,
+                metrics=aggregated_metric_values,
+                run_id=benchmark_run.info.run_id,
             )
 
-            # End run properly
+            # End the Benchmark Run properly
             mlflow.end_run()
 
 
@@ -141,19 +151,19 @@ if __name__ == "__main__":
 
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
-    models = [
+    enhancement_models = [
         UShapeModelWrapper(device=device),
         CVAEModelWrapper(device=device),
     ]
 
-    datasets_classes = [
+    dataset_classes = [
         UIEBDataset,
         LSUIDataset,
     ]
 
-    metrics = [
+    evaluation_metrics = [
         SSIMMetric(),
         PSNRMetric(),
     ]
 
-    full_test_routine(models, datasets_classes, metrics)
+    run_benchmark(enhancement_models, dataset_classes, evaluation_metrics)

@@ -31,37 +31,41 @@ class CVAEModelWrapper(AbstractModel):
 
         # Re-use the instanciation technique of the original project, with a .yaml file containing all necessary parameters
         config = OmegaConf.load(config_file)
-        self.model = instantiate_from_config(config.model)
+        self.model_implementation = instantiate_from_config(config.model)
 
-        # Retrieve model checkpoint path from config
-        self.model_ckpt = config.model.params.ckpt_path
+        # Retrieve the checkpoint path from config
+        self.checkpoint_path = config.model.params.ckpt_path
 
-        self.load_model(device)
+        self.load_checkpoint(device)
 
-    def load_model(self, device: torch.device) -> None:
-        self.model.to(device)
-        checkpoint_path = Path(self.model_ckpt).resolve()
+    def load_checkpoint(self, device: torch.device) -> None:
+        self.model_implementation.to(device)
+        checkpoint_path = Path(self.checkpoint_path).resolve()
         if not checkpoint_path.exists():
-            logging.warning(f"Could not find model weights at: {checkpoint_path}")
+            logging.warning(f"Could not find checkpoint at: {checkpoint_path}")
         else:
             checkpoint = torch.load(
                 checkpoint_path,
                 weights_only=False,
                 map_location=device,
             )
-            self.model.load_state_dict(checkpoint["state_dict"], strict=False)
+            self.model_implementation.load_state_dict(
+                checkpoint["state_dict"], strict=False
+            )
 
-    def forward(self, input: torch.Tensor) -> torch.Tensor:
+    def forward(self, preprocessed_image: torch.Tensor) -> torch.Tensor:
         # Check if the input has a batch dimension (N) and add it if not
-        if input.ndim == 3:
-            input = torch.unsqueeze(input, dim=0)
-        elif input.ndim != 4:
+        if preprocessed_image.ndim == 3:
+            preprocessed_image = torch.unsqueeze(preprocessed_image, dim=0)
+        elif preprocessed_image.ndim != 4:
             raise ValueError("Input must be a tensor of shape (N, C, H, W)")
 
-        # Get the model output
-        return self.model.forward(input)
+        # Get the Model Implementation output
+        return self.model_implementation.forward(preprocessed_image)
 
-    def preprocessing(self, input: Image.Image | list[Image.Image]) -> torch.Tensor:
+    def preprocessing(
+        self, degraded_image: Image.Image | list[Image.Image]
+    ) -> torch.Tensor:
         def preprocessing_single_image(img: Image.Image) -> torch.Tensor:
             # Preprocessing function is gathered from original ce-vae github implementation
             img = resize(
@@ -74,12 +78,14 @@ class CVAEModelWrapper(AbstractModel):
                 tensor = torch.cat([tensor, tensor, tensor], dim=1)
             return 2.0 * tensor - 1.0  # Resample values from [0, 1] to [-1, 1]
 
-        if isinstance(input, list):
-            output = [preprocessing_single_image(item) for item in input]
-            return torch.stack(output, dim=0)
-        return preprocessing_single_image(input)
+        if isinstance(degraded_image, list):
+            preprocessed_images = [
+                preprocessing_single_image(item) for item in degraded_image
+            ]
+            return torch.stack(preprocessed_images, dim=0)
+        return preprocessing_single_image(degraded_image)
 
-    def postprocessing(self, output: torch.Tensor) -> list[Image.Image]:
+    def postprocessing(self, model_output: torch.Tensor) -> list[Image.Image]:
         def postprocessing_single_image(tensor: torch.Tensor) -> Image.Image:
             tensor = tensor.detach()
             tensor = tensor.clamp(-1, 1)
@@ -91,9 +97,9 @@ class CVAEModelWrapper(AbstractModel):
                 img = img.convert("RGB")
             return img
 
-        if output.ndim == 4:
-            return [postprocessing_single_image(t) for t in output]
-        elif output.ndim == 3:
-            return [postprocessing_single_image(output)]
+        if model_output.ndim == 4:
+            return [postprocessing_single_image(t) for t in model_output]
+        elif model_output.ndim == 3:
+            return [postprocessing_single_image(model_output)]
         else:
             raise ValueError("Output tensor must be either a single or batched tensor.")
