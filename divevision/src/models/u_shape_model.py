@@ -12,7 +12,7 @@ class UShapeModelWrapper(AbstractModel):
 
     def __init__(
         self,
-        model_ckpt: str = "divevision/models/UShapeTransformer/saved_models/G/generator_795.pth",
+        checkpoint_path: str = "divevision/models/UShapeTransformer/saved_models/G/generator_795.pth",
         device: torch.device = torch.device("cpu"),
         # Legacy parameters
         img_dim=256,
@@ -32,7 +32,7 @@ class UShapeModelWrapper(AbstractModel):
     ):
         super().__init__()
 
-        self.model = UshapeModel(
+        self.model_implementation = UshapeModel(
             img_dim=img_dim,
             patch_dim=patch_dim,
             embedding_dim=embedding_dim,
@@ -50,39 +50,39 @@ class UShapeModelWrapper(AbstractModel):
         )
 
         self.img_dim = img_dim
-        self.model_ckpt = model_ckpt
+        self.checkpoint_path = checkpoint_path
 
-        self.load_model(device)
+        self.load_checkpoint(device)
 
-    def predict(self, input: Image) -> list[Image]:
-        """We redefine the predict function, because the model accepts only 256x256 pixels images. We want to resize to the original image size."""
-        # Preprocess the input
-        input_tensor = self.preprocessing(input)
-        model_output = self.forward(input_tensor)
+    def predict(self, degraded_image: Image) -> list[Image]:
+        """We redefine the predict function, because the Model Implementation only accepts 256x256 pixels images. We want to resize back to the original image size."""
+        # Preprocess the Degraded Image
+        preprocessed_image = self.preprocessing(degraded_image)
+        model_output = self.forward(preprocessed_image)
         # Resize the model output to the original input size
-        resized_tensor = transforms.Resize(
+        resized_output = transforms.Resize(
             tuple(
-                input_tensor.shape[1:]
+                preprocessed_image.shape[1:]
             ),  # Retrieve the size of the image by removing batch size
             interpolation=transforms.InterpolationMode.BILINEAR,
             antialias=True,
         )(model_output)
-        # Postprocess the resized image
-        return self.postprocessing(resized_tensor)
+        # Postprocess the resized output into an Enhanced Image
+        return self.postprocessing(resized_output)
 
-    def forward(self, input: torch.Tensor) -> torch.Tensor:
+    def forward(self, preprocessed_image: torch.Tensor) -> torch.Tensor:
         # Check if the input has a batch dimension (N) and add it if not
-        if input.ndim == 3:
-            input = torch.unsqueeze(input, dim=0)
-        elif input.ndim != 4:
+        if preprocessed_image.ndim == 3:
+            preprocessed_image = torch.unsqueeze(preprocessed_image, dim=0)
+        elif preprocessed_image.ndim != 4:
             raise ValueError("Input must be a tensor of shape (N, C, H, W)")
 
-        # Get the model output
-        output = self.model.forward(input)
+        # Get the Model Implementation output
+        model_output = self.model_implementation.forward(preprocessed_image)
         # Output is actually a tuple of four tensors, we want to retrieve the last one
-        return output[-1]
+        return model_output[-1]
 
-    def preprocessing(self, input: Image | list[Image]) -> torch.Tensor:
+    def preprocessing(self, degraded_image: Image | list[Image]) -> torch.Tensor:
         transformations = transforms.Compose(
             [
                 # Convert the image to a tensor
@@ -99,16 +99,16 @@ class UShapeModelWrapper(AbstractModel):
                 transforms.ToDtype(torch.float32, scale=True),
             ]
         )
-        if isinstance(input, list):  # Handle batch preprocessing
-            output = [transformations(item) for item in input]
-            return torch.stack(output, dim=0)
-        return transformations(input)
+        if isinstance(degraded_image, list):  # Handle batch preprocessing
+            preprocessed_images = [transformations(item) for item in degraded_image]
+            return torch.stack(preprocessed_images, dim=0)
+        return transformations(degraded_image)
 
     def postprocessing(
         self,
-        output: torch.Tensor,
+        model_output: torch.Tensor,
     ) -> list[Image]:
-        """Postprocess the tensor output of the model to an image. Input can be batched."""
+        """Postprocess the tensor output of the Model Implementation into an Enhanced Image. Input can be batched."""
 
         def process_a_single_tensor(tensor):
             # Remove the batch dimension
@@ -119,9 +119,9 @@ class UShapeModelWrapper(AbstractModel):
             image = transforms.ToPILImage()(tensor)
             return image
 
-        if output.ndim == 4:
-            return [process_a_single_tensor(t) for t in output]
-        elif output.ndim == 3:
-            return [process_a_single_tensor(output)]
+        if model_output.ndim == 4:
+            return [process_a_single_tensor(t) for t in model_output]
+        elif model_output.ndim == 3:
+            return [process_a_single_tensor(model_output)]
         else:
             raise ValueError("Output tensor must be either a single or batched tensor.")

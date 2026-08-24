@@ -10,7 +10,7 @@ from divevision.src.datasets.abstract_dataset import AbstractDataset
 
 
 class LSUIDataset(Dataset, AbstractDataset):
-    """LSUI dataset."""
+    """LSUI Benchmark Dataset."""
 
     name = "LSUI"
 
@@ -31,24 +31,24 @@ class LSUIDataset(Dataset, AbstractDataset):
         self.data = self.load_data()
 
     def load_data(self) -> tuple[list[str], list[str]]:
-        """Initialize the LSUI dataset and return the file paths to the images and the corresponding ground truth images as a list of Path objects."""
+        """Initialize the LSUI Benchmark Dataset and return the file paths to the Degraded Images and the corresponding Reference Images as a list of Path objects."""
         dataset_path = Path(self.root_dir)
-        labels_dir = dataset_path.joinpath("GT")
-        inputs_dir = dataset_path.joinpath("input")
+        reference_dir = dataset_path.joinpath("GT")
+        degraded_dir = dataset_path.joinpath("input")
         # Check that there are two subdirectories in root_dir called "GT" and "input"
         assert (
-            labels_dir.is_dir() and inputs_dir.is_dir()
+            reference_dir.is_dir() and degraded_dir.is_dir()
         ), "The root directory must contain two subdirectories called 'GT' and 'input'"
 
         # Check that there are the same number of images in both directories
-        assert len(list(inputs_dir.iterdir())) == len(
-            list(labels_dir.iterdir())
+        assert len(list(degraded_dir.iterdir())) == len(
+            list(reference_dir.iterdir())
         ), "The two subdirectories must contain the same number of images"
 
-        inputs_filepaths = sorted([str(x) for x in inputs_dir.glob("*.jpg")])
-        labels_filepaths = sorted([str(x) for x in labels_dir.glob("*.jpg")])
+        degraded_filepaths = sorted([str(x) for x in degraded_dir.glob("*.jpg")])
+        reference_filepaths = sorted([str(x) for x in reference_dir.glob("*.jpg")])
 
-        return inputs_filepaths, labels_filepaths
+        return degraded_filepaths, reference_filepaths
 
     def __len__(self) -> int:
         """Return the number of samples in the dataset."""
@@ -56,16 +56,19 @@ class LSUIDataset(Dataset, AbstractDataset):
 
     def __getitem__(self, idx) -> tuple[torch.Tensor, torch.Tensor]:
         """Get a sample from the dataset."""
-        input_filepath, label_filepath = self.data[0][idx], self.data[1][idx]
+        degraded_filepath, reference_filepath = self.data[0][idx], self.data[1][idx]
 
         # Load the images as PIL images
-        input_img, label_img = Image.open(input_filepath), Image.open(label_filepath)
+        degraded_image, reference_image = (
+            Image.open(degraded_filepath),
+            Image.open(reference_filepath),
+        )
 
         if self.transform is not None:
-            input = self.transform(input_img)
-            label = self.transform(label_img)
+            degraded_image = self.transform(degraded_image)
+            reference_image = self.transform(reference_image)
         else:  # If no transform is provided, convert the images to tensors
-            input = torchvision.transforms.ToTensor()(input_img)
-            label = torchvision.transforms.ToTensor()(label_img)
+            degraded_image = torchvision.transforms.ToTensor()(degraded_image)
+            reference_image = torchvision.transforms.ToTensor()(reference_image)
 
-        return input, label
+        return degraded_image, reference_image
