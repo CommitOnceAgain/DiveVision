@@ -1,4 +1,5 @@
 import io
+import logging
 import os
 import secrets
 from typing import Annotated
@@ -12,6 +13,8 @@ from divevision.src.app import supabase_api
 from divevision.src.models.u_shape_model import UShapeModelWrapper
 
 app = FastAPI()
+
+logger = logging.getLogger(__name__)
 
 
 class Credentials(BaseModel):
@@ -102,8 +105,9 @@ async def upload_file(
         image.verify()  # Verify the image
     except UnidentifiedImageError:
         raise HTTPException(status_code=400, detail="Invalid image file")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error processing image: {str(e)}")
+    except Exception:
+        logger.exception("Error processing uploaded image")
+        raise HTTPException(status_code=500, detail="Error processing image")
     else:
         # verify() leaves the image unusable for further processing, so reopen it
         file_buffer.seek(0)

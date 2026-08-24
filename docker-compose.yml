@@ -26,8 +26,9 @@ services:
       - PYTHONPATH=/app
       # Bind inside the container regardless of what MLFLOW_HOST is set to for clients in .env
       - MLFLOW_HOST=0.0.0.0
-      # Reach the local dev Postgres stand-in by its service name, overriding .env
+      # Reach the local dev Postgres stand-in by its service name/port, overriding .env
       - SUPABASE_POSTGRES_HOST=postgres-dev
+      - SUPABASE_POSTGRES_PORT=5432
     env_file:
       - .env
     volumes:
