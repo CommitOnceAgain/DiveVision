@@ -90,7 +90,7 @@ async def upload_file(
     processed images are now saved to storage and tracked in the `photos`
     table instead of being discarded after the response is sent.
     """
-    if not file.content_type.startswith("image/"):
+    if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File is not an image")
 
     access_token, refresh_token = tokens
