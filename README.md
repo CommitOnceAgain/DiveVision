@@ -91,6 +91,8 @@ locally with `supabase start` (requires Docker) before relying on them.
 poetry run fastapi dev divevision/src/app/main.py
 ```
 
+Or via Docker Compose (reads `.env` through `env_file`, no export needed): `docker compose up api`.
+
 This exposes a form at `/` to upload an image, plus `/signup/`, `/login/`, an authenticated
 `POST /image/` that returns the U-Shape Transformer's enhanced PNG output (and persists it —
 see `AGENTS.md`), `DELETE /photos/{id}/`, `DELETE /account/`, and `POST /leaderboard/`. There is
