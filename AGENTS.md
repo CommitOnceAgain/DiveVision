@@ -27,7 +27,7 @@ DiveVision has two current strands of work — see `README.md` for the full pict
 ## Running things
 
 - Tests: `poetry run pytest`
-- Benchmark: see "Running the benchmark" in `README.md` (needs `.env` + `./mlflow_server.sh`).
+- Benchmark: see "Running the benchmark" in `README.md` (Docker Compose-based).
 - FastAPI server: `poetry run fastapi dev divevision/src/app/main.py`
 
 ## Known issues
