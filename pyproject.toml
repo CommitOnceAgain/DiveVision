@@ -8,9 +8,9 @@ package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.12"
-torch = {version = "^2.4.1", source = "pytorch-cpu"}
+torch = "^2.4.1"
 numpy = "^2.1.2"
-torchvision = {version = "^0.19.1", source = "pytorch-cpu"}
+torchvision = "^0.19.1"
 scikit-image = "^0.24.0"
 tqdm = "^4.67.1"
 fastapi = {extras = ["standard"], version = "^0.115.7"}
@@ -39,11 +39,6 @@ bandit = "^1.8.3"
 
 [tool.poetry.group.benchmark.dependencies]
 psycopg2-binary = "^2.9.12"
-
-[[tool.poetry.source]]
-name = "pytorch-cpu"
-url = "https://download.pytorch.org/whl/cpu"
-priority = "explicit"
 
 [tool.mypy]
 ignore_missing_imports = true
