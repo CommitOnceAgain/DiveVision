@@ -65,10 +65,20 @@ has two current strands of work:
 
 `divevision/src/test.py` runs both models against both datasets and logs metrics to MLflow.
 
+The supported way to run this is via Docker Compose, which supplies the required environment
+variables to each container itself:
+
 1. Copy `.env_example` to `.env` and fill in the MLflow/Supabase/S3 variables it expects.
-2. Start an MLflow tracking server: `./mlflow_server.sh` (reads `.env`, backs onto a Supabase
-   Postgres DB and S3-compatible storage for run/artifact storage).
-3. Run the benchmark: `poetry run python -m divevision.src.test`
+2. `docker compose up postgres-dev mlflow` to start the local Postgres stand-in and the MLflow
+   tracking server (backed by it, or by a Supabase Postgres DB / S3-compatible storage in
+   non-local environments).
+3. `docker compose --profile benchmark up benchmark` to run the benchmark against that MLflow
+   server.
+
+`mlflow_server.sh` and `poetry run python -m divevision.src.test` no longer load `.env`
+themselves — they expect the environment to already be populated (as Docker Compose's
+`env_file` does), so running them directly outside of `docker compose` requires exporting the
+`.env` variables into your shell first.
 
 ## Running the FastAPI server
 
@@ -80,6 +90,8 @@ locally with `supabase start` (requires Docker) before relying on them.
 ```
 poetry run fastapi dev divevision/src/app/main.py
 ```
+
+Or via Docker Compose (reads `.env` through `env_file`, no export needed): `docker compose up api`.
 
 This exposes a form at `/` to upload an image, plus `/signup/`, `/login/`, an authenticated
 `POST /image/` that returns the U-Shape Transformer's enhanced PNG output (and persists it —

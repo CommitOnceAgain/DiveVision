@@ -4,6 +4,16 @@ divevision/data/*/
 # LPIPS checkpoint download cache (see divevision/models/CEVAE/modules/losses/lpips.py)
 taming/
 
+# Ignore config, opencode, and specify folders
+.config/
+.opencode/
+.specify/
+
+# Ignore model weights
+*.npz
+*.ckpt
+*.pth
+
 # Ignore VS Code cache
 .vscode/*
 

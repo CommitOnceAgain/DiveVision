@@ -1,0 +1,101 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONPATH=/app
+    env_file:
+      - .env
+    volumes:
+      - ./divevision:/app/divevision
+    restart: unless-stopped
+    networks:
+      - frontend-network
+
+  mlflow:
+    build:
+      context: .
+      dockerfile: Dockerfile.benchmark
+    command: ["/bin/bash", "/app/mlflow_server.sh"]
+    ports:
+      - "${MLFLOW_PORT}:${MLFLOW_PORT}"
+    environment:
+      - PYTHONPATH=/app
+      # Bind inside the container regardless of what MLFLOW_HOST is set to for clients in .env
+      - MLFLOW_HOST=0.0.0.0
+      # Reach the local dev Postgres stand-in by its service name/port, overriding .env
+      - SUPABASE_POSTGRES_HOST=postgres-dev
+      - SUPABASE_POSTGRES_PORT=5432
+    env_file:
+      - .env
+    volumes:
+      - ./divevision:/app/divevision
+      - ./mlflow_server.sh:/app/mlflow_server.sh
+    restart: unless-stopped
+    depends_on:
+      postgres-dev:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${MLFLOW_PORT}/version"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend-network
+
+  benchmark:
+    build:
+      context: .
+      dockerfile: Dockerfile.benchmark
+    environment:
+      - PYTHONPATH=/app
+      # Reach the mlflow tracking server by its service name, overriding .env
+      - MLFLOW_HOST=mlflow
+    env_file:
+      - .env
+    volumes:
+      - ./divevision:/app/divevision
+    depends_on:
+      mlflow:
+        condition: service_healthy
+    profiles:
+      - benchmark
+    networks:
+      - backend-network
+
+  # Local dev/test Postgres, standing in for Supabase's managed Postgres (which backs
+  # MLflow in non-local environments per .env_example / mlflow_server.sh). Not a
+  # production data store.
+  postgres-dev:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=${SUPABASE_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${SUPABASE_POSTGRES_PASSWORD}
+      - POSTGRES_DB=${SUPABASE_POSTGRES_DB}
+    env_file:
+      - .env
+    ports:
+      - "${SUPABASE_POSTGRES_PORT}:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${SUPABASE_POSTGRES_USER} -d ${SUPABASE_POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - backend-network
+
+networks:
+  backend-network:
+    driver: bridge
+    internal: false # Allows for communication with other services
+  frontend-network:
+    driver: bridge
+
+volumes:
+  postgres_dev_data:

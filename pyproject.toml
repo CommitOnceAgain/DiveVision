@@ -4,6 +4,7 @@ version = "0.1.0"
 description = ""
 authors = ["Alexandre <alexandredothennequin@gmail.com>"]
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.12"
@@ -23,6 +24,7 @@ omegaconf = "^2.3.0"
 albumentations = "^2.0.5"
 gdown = "^5.2.0"
 supabase = "^2.11.0"
+pillow = "11.0.0"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -35,6 +37,9 @@ boto3 = "^1.37.3"
 isort = "^6.0.1"
 mypy = "^1.15.0"
 bandit = "^1.8.3"
+
+[tool.poetry.group.benchmark.dependencies]
+psycopg2-binary = "^2.9.12"
 
 [tool.mypy]
 ignore_missing_imports = true

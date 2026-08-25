@@ -2,13 +2,11 @@ import itertools
 import os
 import time
 from collections import defaultdict
-from pathlib import Path
 from typing import Callable, Type
 
 import mlflow
 import numpy as np
 import torch
-from dotenv import load_dotenv
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
 
@@ -142,8 +140,6 @@ def run_benchmark(
 
 
 if __name__ == "__main__":
-    # Load environment variables from .env file, returns True if at least one environment variable is set
-    assert load_dotenv(Path(".env").resolve())
 
     mlflow.set_tracking_uri(
         uri=f"http://{os.environ["MLFLOW_HOST"]}:{os.environ["MLFLOW_PORT"]}"
